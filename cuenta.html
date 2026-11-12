@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mi cuenta · Pastelería San Pedro</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#3B1C07">
+<link rel="icon" href="img/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=3">
+<link rel="stylesheet" href="app.css?v=3">
+<script src="data.js?v=3"></script>
+<script>if (!SP.session()) location.replace('index.html#ingresar');</script>
+</head>
+<body class="app">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5V20h-5.5v-5h-5v5H4z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+  <symbol id="i-bag" viewBox="0 0 24 24"><path d="M5 8h14l-1.2 12.1a1 1 0 0 1-1 .9H7.2a1 1 0 0 1-1-.9L5 8Z M9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3.5 2.5 5.3 5.8.7-4.3 4 1.1 5.7L12 16.4l-5.1 2.8 1.1-5.7-4.3-4 5.8-.7z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3.5 12.2V4.5a1 1 0 0 1 1-1h7.7l8.3 8.3a1 1 0 0 1 0 1.4l-7.3 7.3a1 1 0 0 1-1.4 0z" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="1.4" fill="currentColor"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M4.5 20c1.2-3.6 4-5.4 7.5-5.4s6.3 1.8 7.5 5.4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+  <symbol id="i-repeat" viewBox="0 0 24 24"><path d="M4 11a7 7 0 0 1 12-4.9L18 8M20 13a7 7 0 0 1-12 4.9L6 16M18 4v4h-4M6 20v-4h4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-gift" viewBox="0 0 24 24"><path d="M4 10h16v3H4zM5.5 13h13v7h-13zM12 10v10M12 10c-1.5-3-5-4-5-1.5S12 10 12 10Zm0 0c1.5-3 5-4 5-1.5S12 10 12 10Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+</svg>
+
+<header class="app-top">
+  <a class="brand" href="index.html"><img class="brand__logo" src="img/logo-128.webp" alt="San Pedro" width="44" height="44"><span class="brand__text"><b>San Pedro</b><small>Pastelería y panadería</small></span></a>
+  <span class="app-top__title">Mi cuenta</span>
+  <div class="app-top__right">
+    <a class="btn btn--solid btn--sm" href="index.html#catalogo">Hacer un pedido</a>
+    <button class="icon-btn" type="button" data-logout title="Cerrar sesión"><span class="avatar" data-initials></span><span class="icon-btn__label">Salir</span></button>
+  </div>
+</header>
+
+<div class="app-shell">
+  <nav class="side" aria-label="Mi cuenta">
+    <a href="#inicio" data-view-link="inicio"><svg><use href="#i-home"/></svg>Inicio</a>
+    <a href="#pedidos" data-view-link="pedidos"><svg><use href="#i-bag"/></svg>Mis pedidos</a>
+    <a href="#puntos" data-view-link="puntos"><svg><use href="#i-star"/></svg>Mis puntos</a>
+    <a href="#promociones" data-view-link="promociones"><svg><use href="#i-tag"/></svg>Promociones</a>
+    <a href="#datos" data-view-link="datos"><svg><use href="#i-user"/></svg>Mis datos</a>
+    <p class="side__foot">¿Dudas con un pedido? <a href="https://wa.me/56987424551" target="_blank" rel="noopener" style="padding:4px 0;display:inline">Escríbenos</a></p>
+  </nav>
+
+  <main class="main">
+    <!-- Inicio -->
+    <section class="view" id="v-inicio">
+      <div class="view__head"><div><h1>Hola, <em data-first></em></h1><p>Qué bueno verte de nuevo por San Pedro.</p></div></div>
+      <div class="grid g-main">
+        <div class="grid">
+          <div class="box" data-next-order></div>
+          <div class="box">
+            <div class="box__head"><div><h2>Destacados de esta semana</h2><p>Lo mismo que te llega al correo cada lunes</p></div><a class="link" href="index.html#semana">Ver todo</a></div>
+            <div class="grid g-3" data-week></div>
+          </div>
+        </div>
+        <div class="grid" style="align-content:start">
+          <div class="loyalty" style="transform:none;max-width:none">
+            <img src="img/logo-128.webp" alt="" width="54" height="54">
+            <p class="loyalty__name">Club San Pedro</p>
+            <p class="loyalty__pts"><b data-points>0</b> puntos</p>
+            <div class="loyalty__bar"><span data-points-bar></span></div>
+            <p class="loyalty__next" data-points-next></p>
+          </div>
+          <div class="box box--dark" data-promo-box></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Mis pedidos -->
+    <section class="view" id="v-pedidos">
+      <div class="view__head"><div><h1>Mis <em>pedidos</em></h1><p>Revisa el estado y repite tus pedidos de siempre con un clic.</p></div></div>
+      <p class="note">Los pedidos SP-2104, SP-2290 y SP-2418 son de ejemplo. Los que hagas en esta demo aparecen arriba.</p>
+      <div class="box" data-orders></div>
+    </section>
+
+    <!-- Puntos -->
+    <section class="view" id="v-puntos">
+      <div class="view__head"><div><h1>Mis <em>puntos</em></h1><p>Sumas 1 punto por cada $1.000 en pedidos entregados.</p></div></div>
+      <div class="grid g-2">
+        <div class="box">
+          <div class="box__head"><h2>Canjea tus puntos</h2><span class="pill"><b data-points2>0</b> disponibles</span></div>
+          <div class="grid" data-rewards></div>
+        </div>
+        <div class="box">
+          <div class="box__head"><h2>Movimientos</h2></div>
+          <div class="table-wrap"><table class="t"><thead><tr><th>Fecha</th><th>Detalle</th><th class="num">Puntos</th></tr></thead><tbody data-moves></tbody></table></div>
+        </div>
+      </div>
+      <div class="box box--sand" style="margin-top:18px">
+        <h2>Cómo funciona</h2>
+        <div class="grid g-3" style="margin-top:12px">
+          <p class="small"><b>Compra:</b> 1 punto por cada $1.000 en pedidos entregados, en la web, WhatsApp o Instagram.</p>
+          <p class="small"><b>Bonos:</b> 50 puntos al crear tu cuenta y 100 en tu cumpleaños.</p>
+          <p class="small"><b>Canje:</b> eliges tu recompensa y se descuenta en tu próximo pedido.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Promociones -->
+    <section class="view" id="v-promociones">
+      <div class="view__head"><div><h1><em>Promociones</em> y fechas especiales</h1><p>Pide con anticipación y paga menos en las fechas de más demanda.</p></div></div>
+      <div class="grid g-main">
+        <div class="box">
+          <div class="box__head"><div><h2>Calendario de fechas especiales</h2><p>El descuento vale para pedidos hechos hasta 1 semana antes</p></div></div>
+          <div class="table-wrap"><table class="t"><thead><tr><th>Fecha</th><th>Celebración</th><th>Descuento</th><th>Pide hasta</th></tr></thead><tbody data-peaks></tbody></table></div>
+        </div>
+        <div>
+          <p class="small muted" style="margin:0 0 8px">Así te llega el correo semanal</p>
+          <div class="mail" data-mail></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Mis datos -->
+    <section class="view" id="v-datos">
+      <div class="view__head"><div><h1>Mis <em>datos</em></h1><p>Para que tus pedidos lleguen sin tener que repetir nada.</p></div></div>
+      <div class="grid g-2">
+        <form class="box form" data-profile>
+          <h2>Datos personales</h2>
+          <div class="row"><label class="field"><span>Nombre</span><input name="name"></label><label class="field"><span>Teléfono</span><input name="phone" type="tel"></label></div>
+          <label class="field"><span>Correo</span><input name="email" type="email"></label>
+          <div class="row"><label class="field"><span>Cumpleaños</span><input name="birthday" type="date"></label><label class="field"><span>Dirección de despacho</span><input name="address" placeholder="Calle, número, sector"></label></div>
+          <p class="small muted" data-provider></p>
+          <button class="btn btn--solid" type="submit">Guardar cambios</button>
+        </form>
+        <div class="box">
+          <h2>Correos y avisos</h2>
+          <div class="switch"><span><b>Destacados de la semana</b><small>Un correo los lunes con lo de temporada</small></span><input type="checkbox" data-pref="weekly"></div>
+          <div class="switch"><span><b>Promociones de fechas especiales</b><small>Navidad, Fiestas Patrias, Día de la Madre y más</small></span><input type="checkbox" data-pref="promos"></div>
+          <div class="switch"><span><b>Avisos de mi pedido por WhatsApp</b><small>Cuando se confirma y cuando está listo</small></span><input type="checkbox" data-pref="wa" checked></div>
+          <div class="switch"><span><b>Recordatorio de cumpleaños</b><small>Te avisamos 10 días antes para encargar tu torta</small></span><input type="checkbox" data-pref="bday" checked></div>
+          <p class="small muted" style="margin:12px 0 0">Puedes darte de baja cuando quieras desde aquí o desde el mismo correo.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<p class="demo-tag">Propuesta de diseño · versión de prueba por José Farías</p>
+<script src="cuenta.js?v=3"></script>
+</body>
+</html>
