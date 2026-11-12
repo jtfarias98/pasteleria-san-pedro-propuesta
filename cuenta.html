@@ -10,9 +10,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=3">
-<link rel="stylesheet" href="app.css?v=3">
-<script src="data.js?v=3"></script>
+<link rel="stylesheet" href="styles.css?v=4">
+<link rel="stylesheet" href="app.css?v=4">
+<script src="data.js?v=4"></script>
 <script>if (!SP.session()) location.replace('index.html#ingresar');</script>
 </head>
 <body class="app">
@@ -40,7 +40,7 @@
     <a href="#inicio" data-view-link="inicio"><svg><use href="#i-home"/></svg>Inicio</a>
     <a href="#pedidos" data-view-link="pedidos"><svg><use href="#i-bag"/></svg>Mis pedidos</a>
     <a href="#puntos" data-view-link="puntos"><svg><use href="#i-star"/></svg>Mis puntos</a>
-    <a href="#promociones" data-view-link="promociones"><svg><use href="#i-tag"/></svg>Promociones</a>
+    <a href="#promociones" data-view-link="promociones"><svg><use href="#i-tag"/></svg>Fechas especiales</a>
     <a href="#datos" data-view-link="datos"><svg><use href="#i-user"/></svg>Mis datos</a>
     <p class="side__foot">¿Dudas con un pedido? <a href="https://wa.me/56987424551" target="_blank" rel="noopener" style="padding:4px 0;display:inline">Escríbenos</a></p>
   </nav>
@@ -102,11 +102,11 @@
 
     <!-- Promociones -->
     <section class="view" id="v-promociones">
-      <div class="view__head"><div><h1><em>Promociones</em> y fechas especiales</h1><p>Pide con anticipación y paga menos en las fechas de más demanda.</p></div></div>
+      <div class="view__head"><div><h1><em>Fechas</em> especiales</h1><p>Te avisamos con tiempo para que encargues antes de que se llenen los cupos.</p></div></div>
       <div class="grid g-main">
         <div class="box">
-          <div class="box__head"><div><h2>Calendario de fechas especiales</h2><p>El descuento vale para pedidos hechos hasta 1 semana antes</p></div></div>
-          <div class="table-wrap"><table class="t"><thead><tr><th>Fecha</th><th>Celebración</th><th>Descuento</th><th>Pide hasta</th></tr></thead><tbody data-peaks></tbody></table></div>
+          <div class="box__head"><div><h2>Calendario de fechas especiales</h2><p>Siempre se prepara fresco para el día que elijas</p></div></div>
+          <div class="table-wrap"><table class="t"><thead><tr><th>Fecha</th><th>Celebración</th><th>Te avisamos el</th></tr></thead><tbody data-peaks></tbody></table></div>
         </div>
         <div>
           <p class="small muted" style="margin:0 0 8px">Así te llega el correo semanal</p>
@@ -130,7 +130,7 @@
         <div class="box">
           <h2>Correos y avisos</h2>
           <div class="switch"><span><b>Destacados de la semana</b><small>Un correo los lunes con lo de temporada</small></span><input type="checkbox" data-pref="weekly"></div>
-          <div class="switch"><span><b>Promociones de fechas especiales</b><small>Navidad, Fiestas Patrias, Día de la Madre y más</small></span><input type="checkbox" data-pref="promos"></div>
+          <div class="switch"><span><b>Aviso de fechas especiales</b><small>Navidad, Fiestas Patrias, Día de la Madre y más</small></span><input type="checkbox" data-pref="promos"></div>
           <div class="switch"><span><b>Avisos de mi pedido por WhatsApp</b><small>Cuando se confirma y cuando está listo</small></span><input type="checkbox" data-pref="wa" checked></div>
           <div class="switch"><span><b>Recordatorio de cumpleaños</b><small>Te avisamos 10 días antes para encargar tu torta</small></span><input type="checkbox" data-pref="bday" checked></div>
           <p class="small muted" style="margin:12px 0 0">Puedes darte de baja cuando quieras desde aquí o desde el mismo correo.</p>
@@ -142,6 +142,6 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <p class="demo-tag">Propuesta de diseño · versión de prueba por José Farías</p>
-<script src="cuenta.js?v=3"></script>
+<script src="cuenta.js?v=4"></script>
 </body>
 </html>

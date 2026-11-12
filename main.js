@@ -24,27 +24,19 @@
   /* ---------- Promoción activa (fecha peak) ---------- */
   const promo = SP.activePromo();
   if (promo) {
-    const cut = SP.fmt(SP.cutoff(promo), { day: 'numeric', month: 'long' });
+    // Sin descuentos en la web: solo se invita a encargar con anticipación (el producto se hace fresco para la fecha)
     $('#announce').hidden = false;
-    $('[data-promo-text]').textContent = `${promo.name}: encarga hasta el ${cut} y obtén ${promo.off}% de descuento en productos seleccionados`;
-    $$('[data-promo-off]').forEach(e => e.textContent = promo.off);
-    $('[data-promo-name]').textContent = promo.name + ' · pide con anticipación';
+    $('[data-promo-text]').textContent = `${promo.name}: encarga con anticipación y asegura tu cupo. La preparamos fresca para el día que elijas`;
+    $('[data-promo-name]').textContent = promo.name + ' · ' + SP.fmt(promo.date, { day: 'numeric', month: 'long' });
     $('[data-promo-name-low]').textContent = promo.name;
-    $('[data-promo-cutoff]').textContent = cut;
-    const end = new Date(SP.cutoff(promo) + 'T23:59:59');
-    const tick = () => {
-      const ms = Math.max(0, end - new Date());
-      $('[data-cd-d]').textContent = Math.floor(ms / 864e5);
-      $('[data-cd-h]').textContent = Math.floor(ms / 36e5) % 24;
-      $('[data-cd-m]').textContent = Math.floor(ms / 6e4) % 60;
-    };
-    tick(); setInterval(tick, 30000);
+    $('[data-promo-name-short]').textContent = promo.name;
+    $('[data-cd-d]').textContent = Math.max(0, Math.round((new Date(promo.date + 'T12:00') - SP.today()) / 864e5));
   } else $('#promo-card').hidden = true;
   onScroll();
 
   /* ---------- Tarjetas de producto ---------- */
   const catName = id => (SP.CATS.find(c => c[0] === id) || [, ''])[1];
-  const promoFor = p => promo && promo.products.includes(p.id);
+  const promoFor = () => false; // los descuentos quedan como propuesta, no se muestran en la web
   const card = p => `
     <article class="card" data-cat="${p.cat}" data-id="${p.id}">
       <div class="card__img">
@@ -62,12 +54,12 @@
       </div>
     </article>`;
 
-  const weekIds = ['menta', 'milhoja', promo ? promo.products[0] : 'selva', 'trufas', 'tartas'];
+  const weekIds = ['menta', 'milhoja', 'selva', 'trufas', 'tartas'];
   $('[data-week-rail]').innerHTML = weekIds.map(id => card(SP.byId(id))).join('');
 
   const productsEl = $('[data-products]');
   productsEl.innerHTML = SP.PRODUCTS.map(card).join('');
-  const filters = [['all', 'Todo'], ...(promo ? [['promo', `Con descuento ${promo.name}`]] : []), ...SP.CATS];
+  const filters = [['all', 'Todo'], ...SP.CATS];
   $('[data-filters]').innerHTML = filters.map(([id, n], i) =>
     `<button class="filter${id === 'promo' ? ' filter--promo' : ''}${i ? '' : ' is-active'}" role="tab" data-filter="${id}">${esc(n)}</button>`).join('');
   const applyFilter = f => {

@@ -65,13 +65,13 @@
 
   /* ---------- Destacados ---------- */
   const promo = SP.activePromo();
-  const week = ['menta', promo ? promo.products[0] : 'selva', 'trufas'].map(SP.byId);
-  $('[data-week]').innerHTML = week.map(p => `<a href="index.html#catalogo" style="text-decoration:none"><img src="img/${p.img}-800.webp" alt="" loading="lazy" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:16px"><p style="margin:8px 0 0;font:400 17px/1.2 var(--serif)">${esc(p.name)}</p>${promo && promo.products.includes(p.id) ? `<span class="tag tag--promo" style="display:inline-block;margin-top:4px">-${promo.off}% ${promo.name}</span>` : ''}</a>`).join('');
+  const week = ['menta', 'selva', 'trufas'].map(SP.byId);
+  $('[data-week]').innerHTML = week.map(p => `<a href="index.html#catalogo" style="text-decoration:none"><img src="img/${p.img}-800.webp" alt="" loading="lazy" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:16px"><p style="margin:8px 0 0;font:400 17px/1.2 var(--serif)">${esc(p.name)}</p></a>`).join('');
   $('[data-promo-box]').innerHTML = promo ? `
-    <p class="eyebrow eyebrow--peach">${promo.name}</p>
-    <h2 style="color:#fff;font-size:26px">${promo.off}% de descuento pidiendo con tiempo</h2>
-    <p class="small" style="margin:8px 0 16px">En productos seleccionados, para pedidos hechos hasta el <b>${SP.fmt(SP.cutoff(promo), { day: 'numeric', month: 'long' })}</b>.</p>
-    <a class="btn btn--cream btn--sm" href="index.html#catalogo">Encargar ahora</a>` : '<h2 style="color:#fff">Sin promociones activas</h2>';
+    <p class="eyebrow eyebrow--peach">${promo.name} · ${SP.fmt(promo.date, { day: 'numeric', month: 'long' })}</p>
+    <h2 style="color:#fff;font-size:26px">Asegura tu pedido con tiempo</h2>
+    <p class="small" style="margin:8px 0 16px">Los cupos de las fechas especiales se llenan rápido. Encarga hoy y lo preparamos fresco para el día que elijas.</p>
+    <a class="btn btn--cream btn--sm" href="index.html#catalogo">Encargar ahora</a>` : '<h2 style="color:#fff">Te avisamos de las próximas fechas especiales</h2>';
 
   /* ---------- Puntos ---------- */
   const moves = [
@@ -106,10 +106,7 @@
   renderPoints();
 
   /* ---------- Promociones ---------- */
-  $('[data-peaks]').innerHTML = SP.PEAKS.map(p => {
-    const open = SP.iso(SP.today()) <= SP.cutoff(p);
-    return `<tr><td class="muted">${SP.fmt(p.date, { day: 'numeric', month: 'short' })}</td><td><b>${p.name}</b></td><td><span class="pill ${open ? 'pill--new' : ''}">-${p.off}%</span></td><td>${SP.fmt(SP.cutoff(p), { day: 'numeric', month: 'short' })}</td></tr>`;
-  }).join('');
+  $('[data-peaks]').innerHTML = SP.PEAKS.map(p => `<tr><td class="muted">${SP.fmt(p.date, { day: 'numeric', month: 'short' })}</td><td><b>${p.name}</b></td><td>${SP.fmt(SP.iso(SP.plus(new Date(p.date + 'T12:00'), -21)), { day: 'numeric', month: 'short' })}</td></tr>`).join('');
   const mon = new Date(SP.today()); mon.setDate(mon.getDate() + ((8 - mon.getDay()) % 7 || 7));
   $('[data-mail]').innerHTML = `
     <div class="mail__bar"><b>Destacados de la semana en San Pedro</b><span>De: Pastelería San Pedro · ${SP.fmt(SP.iso(mon), { weekday: 'long', day: 'numeric', month: 'long' })}, 09:00</span></div>
@@ -117,7 +114,7 @@
     <div class="mail__body">
       <p style="margin:0">Hola ${esc(user.name.split(' ')[0])}, esto es lo que viene de temporada:</p>
       <div class="mail__items">${week.map(p => `<figure><img src="img/${p.img}-800.webp" alt="">${esc(p.name)}</figure>`).join('')}</div>
-      ${promo ? `<p style="margin:0 0 12px"><b>${promo.name}:</b> ${promo.off}% de descuento pidiendo hasta el ${SP.fmt(SP.cutoff(promo), { day: 'numeric', month: 'long' })}.</p>` : ''}
+      ${promo ? `<p style="margin:0 0 12px"><b>${promo.name}:</b> ya puedes encargar para el ${SP.fmt(promo.date, { day: 'numeric', month: 'long' })}. Los cupos se llenan rápido.</p>` : ''}
       <a class="mail__cta" href="index.html#catalogo">Hacer mi pedido</a>
     </div>
     <p class="mail__foot">Recibes este correo porque lo aceptaste al crear tu cuenta · Darme de baja</p>`;

@@ -436,13 +436,14 @@
   const CAMPS = SP.PEAKS.map(p => ({ ...p, status: T <= SP.cutoff(p) ? (p === SP.activePromo() ? 'activa' : 'programada') : 'finalizada', audience: 'Clientes con correo aceptado' }));
   const subs = CLIENTS.filter(c => c.consent).length * 37; // ejemplo
   function renderCampanas() {
-    $('#v-campanas').innerHTML = head('Campañas y <em>promociones</em>', 'Lancen promociones para las fechas de más demanda en pocos pasos. El descuento solo vale pidiendo con anticipación, para repartir el trabajo.',
+    $('#v-campanas').innerHTML = head('Campañas y <em>fechas especiales</em>', 'Avisen con tiempo de las fechas de más demanda para repartir el trabajo. El producto se prepara fresco para el día elegido; solo el pedido se hace antes.',
       `<button class="btn btn--solid btn--sm" data-new-camp>+ Nueva campaña</button>`) + `
+      <p class="note"><span><b>Propuesta para conversar:</b> ofrecer cerca de un 10% de descuento a quien encargue con anticipación para la fecha elegida. Hoy no se muestra en la tienda; se activaría solo si les parece.</span></p>
       <div class="grid g-main">
         <div class="box">
           <div class="box__head"><h2>Calendario de campañas</h2><p>${subs} clientes reciben correos (ejemplo)</p></div>
           ${CAMPS.map(c => `<div class="camp"><div class="camp__date"><b>${new Date(c.date + 'T12:00').getDate()}</b><small>${SP.fmt(c.date, { month: 'short' })}</small></div>
-            <div><h3>${esc(c.name)} · -${c.off}% ${st(c.status)}</h3><p>Pedidos hasta el ${SP.fmt(SP.cutoff(c), { day: 'numeric', month: 'long' })} · ${c.products.map(id => SP.byId(id)?.name).filter(Boolean).join(', ')}</p></div>
+            <div><h3>${esc(c.name)} · propuesta -${c.off}% ${st(c.status)}</h3><p>Encargos anticipados hasta el ${SP.fmt(SP.cutoff(c), { day: 'numeric', month: 'long' })} · ${c.products.map(id => SP.byId(id)?.name).filter(Boolean).join(', ')}</p></div>
             <div class="camp__stats">${c.status === 'activa' ? `<span><b>${Math.round(subs * .97)}</b>enviados</span><span><b>48%</b>abiertos</span><span><b>${Math.round(subs * .04)}</b>pedidos</span>` : c.status === 'programada' ? '<span class="small">Se envía 3 semanas antes</span>' : ''}</div></div>`).join('')}
         </div>
         <div class="grid" style="align-content:start">
@@ -467,7 +468,7 @@
     openModal(`<p class="eyebrow">Nueva campaña</p><h2>Lanza una <em>promoción</em></h2>
       <form class="form" data-camp-form style="margin-top:14px">
         <div class="row"><label class="field"><span>Fecha especial</span><select name="peak">${SP.PEAKS.map(p => `<option value="${p.id}" ${p === nextPeak ? 'selected' : ''}>${p.name} · ${SP.fmt(p.date, { day: 'numeric', month: 'short' })}</option>`).join('')}</select></label>
-          <label class="field"><span>Descuento</span><select name="off">${[5, 10, 12, 15, 20].map(n => `<option ${n === 15 ? 'selected' : ''} value="${n}">${n}%</option>`).join('')}</select></label></div>
+          <label class="field"><span>Descuento</span><select name="off">${[0, 5, 10, 15].map(n => `<option ${n === 10 ? 'selected' : ''} value="${n}">${n ? n + '% por encargo anticipado' : 'Sin descuento (solo aviso)'}</option>`).join('')}</select></label></div>
         <div class="row"><label class="field"><span>Pedir con anticipación de</span><select name="lead"><option value="7" selected>1 semana antes</option><option value="10">10 días antes</option><option value="14">2 semanas antes</option></select></label>
           <label class="field"><span>Para</span><select name="aud"><option>Todos los que aceptaron correos</option><option>Clientes frecuentes (3+ pedidos)</option><option>Clientes que no piden hace 3 meses</option></select></label></div>
         <fieldset class="field"><legend>Productos con descuento</legend><div class="chips">${SP.PRODUCTS.map(p => `<label><input type="checkbox" name="p" value="${p.id}" ${nextPeak.products.includes(p.id) ? 'checked' : ''}><span>${esc(p.name)}</span></label>`).join('')}</div></fieldset>

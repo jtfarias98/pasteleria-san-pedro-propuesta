@@ -54,11 +54,11 @@ window.SP = (() => {
 
   /* ---------- Fechas peak (campañas) ---------- */
   const PEAKS = [
-    { id: 'navidad', name: 'Navidad', date: '2026-12-25', off: 15, products: ['selva', 'bombon', 'manjar-nuez', 'amaretto'] },
+    { id: 'navidad', name: 'Navidad', date: '2026-12-25', off: 10, products: ['selva', 'bombon', 'manjar-nuez', 'amaretto'] },
     { id: 'anionuevo', name: 'Año Nuevo', date: '2026-12-31', off: 10, products: ['trufas', 'postre-vaso', 'empanada'] },
     { id: 'sanvalentin', name: 'San Valentín', date: '2027-02-14', off: 10, products: ['amor', 'terciopelo', 'trufas'] },
     { id: 'pascua', name: 'Semana Santa', date: '2027-03-28', off: 10, products: ['trufas', 'regalo'] },
-    { id: 'madre', name: 'Día de la Madre', date: '2027-05-09', off: 12, products: ['frambuesa', 'lucuma', 'regalo'] },
+    { id: 'madre', name: 'Día de la Madre', date: '2027-05-09', off: 10, products: ['frambuesa', 'lucuma', 'regalo'] },
     { id: 'padre', name: 'Día del Padre', date: '2027-06-20', off: 10, products: ['moka', 'chocolate'] },
     { id: 'fiestaspatrias', name: 'Fiestas Patrias', date: '2027-09-18', off: 10, products: ['empanada', 'pan'] }
   ];
