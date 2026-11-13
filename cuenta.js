@@ -75,33 +75,31 @@
 
   /* ---------- Puntos ---------- */
   const moves = [
-    { d: SP.iso(SP.plus(SP.today(), -200)), t: 'Pedidos anteriores', p: 120 },
-    { d: SP.iso(SP.plus(SP.today(), -60)), t: 'Bono de bienvenida al Club', p: 50 },
-    ...orders.filter(o => o.status === 'entregado' && o.total).map(o => ({ d: o.date, t: `Pedido ${o.id}`, p: Math.floor(o.total / 1000) })),
+    { d: SP.iso(SP.plus(SP.today(), -200)), t: 'Pedidos anteriores', p: 240 },
+    { d: SP.iso(SP.plus(SP.today(), -60)), t: 'Bono de bienvenida al Club', p: SP.premios().welcome },
+    ...orders.filter(o => o.status === 'entregado' && o.total).map(o => ({ d: o.date, t: `Pedido ${o.id}`, p: SP.pointsFor(o.total) })),
     ...SP.get('redeemed', []).map(r => ({ d: r.d, t: `Canje: ${r.t}`, p: -r.p }))
   ].sort((a, b) => b.d.localeCompare(a.d));
-  const REWARDS = [
-    { id: 'dcto', t: '10% en tu próximo pedido', p: 150, img: 'tartas' },
-    { id: 'kuchen', t: 'Kuchen de regalo', p: 400, img: 'tartas' },
-    { id: 'trufas', t: 'Caja de trufas', p: 300, img: 'trufas' },
-    { id: 'torta', t: 'Torta para 8 personas', p: 900, img: 'torta-menta' }
-  ];
+  // Premios por nivel: los define el admin (cuántos puntos y qué productos se pueden elegir)
+  const LEVELS = SP.premios().levels;
   const renderPoints = () => {
     const pts = moves.reduce((s, m) => s + m.p, 0);
     $('[data-points]').textContent = pts; $('[data-points2]').textContent = pts;
-    const goal = REWARDS.filter(r => r.p > pts).sort((a, b) => a.p - b.p)[0];
-    $('[data-points-bar]').style.width = goal ? Math.min(100, pts / goal.p * 100) + '%' : '100%';
-    $('[data-points-next]').innerHTML = goal ? `Te faltan ${goal.p - pts} puntos para <b>${goal.t}</b>` : 'Ya puedes canjear cualquier recompensa';
+    const goal = LEVELS.find(l => l.pts > pts), reached = LEVELS.filter(l => l.pts <= pts).length;
+    $('[data-points-bar]').style.width = goal ? Math.min(100, pts / goal.pts * 100) + '%' : '100%';
+    $('[data-points-next]').innerHTML = goal ? `Te faltan ${goal.pts - pts} puntos para <b>${reached ? 'el siguiente nivel de premios' : 'elegir tu primer premio'}</b>` : 'Ya puedes elegir cualquier premio';
     $('[data-moves]').innerHTML = moves.map(m => `<tr><td class="muted">${SP.fmt(m.d, { day: 'numeric', month: 'short', year: 'numeric' })}</td><td>${esc(m.t)}</td><td class="num ${m.p > 0 ? 'up' : 'down'}">${m.p > 0 ? '+' : ''}${m.p}</td></tr>`).join('');
-    $('[data-rewards]').innerHTML = REWARDS.map(r => `<div class="reward"><img src="img/${r.img}-800.webp" alt="" loading="lazy"><span><b>${r.t}</b><small>${r.p} puntos</small></span>
-      <button class="btn btn--sm ${pts >= r.p ? 'btn--solid' : 'btn--line'}" data-redeem="${r.id}" ${pts >= r.p ? '' : 'disabled'}>Canjear</button></div>`).join('');
+    $('[data-rewards]').innerHTML = LEVELS.map((l, li) => `<div class="level${pts >= l.pts ? ' is-open' : ''}">
+      <p class="level__h"><b>${l.pts} puntos</b><span>${pts >= l.pts ? 'Elige uno' : `Te faltan ${l.pts - pts}`}</span></p>
+      ${l.gifts.map(g => `<div class="reward"><img src="img/${SP.giftImg(g)}-800.webp" alt="" loading="lazy"><span><b>${esc(SP.giftName(g))}</b><small>De regalo</small></span>
+        <button class="btn btn--sm ${pts >= l.pts ? 'btn--solid' : 'btn--line'}" data-redeem="${li}|${esc(g)}" ${pts >= l.pts ? '' : 'disabled'}>Elegir</button></div>`).join('')}</div>`).join('');
   };
   $('[data-rewards]').addEventListener('click', e => {
     const b = e.target.closest('[data-redeem]'); if (!b) return;
-    const r = REWARDS.find(x => x.id === b.dataset.redeem);
-    const red = SP.get('redeemed', []); const entry = { d: SP.iso(SP.today()), t: r.t, p: r.p };
-    red.push(entry); SP.set('redeemed', red); moves.unshift(entry); renderPoints();
-    toast(`Listo: “${r.t}” se aplicará en tu próximo pedido`);
+    const [li, g] = [+b.dataset.redeem.split('|')[0], b.dataset.redeem.split('|').slice(1).join('|')], name = SP.giftName(g);
+    const red = SP.get('redeemed', []); const entry = { d: SP.iso(SP.today()), t: name, p: LEVELS[li].pts };
+    red.push(entry); SP.set('redeemed', red); moves.unshift({ d: entry.d, t: `Canje: ${name}`, p: -entry.p }); renderPoints();
+    toast(`Listo: “${name}” va de regalo en tu próximo pedido`);
   });
   renderPoints();
 
@@ -118,6 +116,20 @@
       <a class="mail__cta" href="index.html#catalogo">Hacer mi pedido</a>
     </div>
     <p class="mail__foot">Recibes este correo porque lo aceptaste al crear tu cuenta · Darme de baja</p>`;
+
+  /* ---------- Cumpleaños ---------- */
+  const bd = SP.bday(), first = esc(user.name.split(' ')[0]);
+  $('[data-bday-rule]').innerHTML = `<b>Cumpleaños:</b> te saludamos por correo con un ${SP.bdayText(bd)}.`;
+  $('[data-bday-pref]').textContent = `Un correo en tu cumpleaños con ${SP.bdayText(bd)}`;
+  $('[data-bday-mail]').innerHTML = `
+    <div class="mail__bar"><b>¡Feliz cumpleaños, ${first}! 🎂</b><span>De: Pastelería San Pedro · ${user.birthday ? 'el ' + SP.fmt(SP.iso(SP.today()).slice(0, 4) + user.birthday.slice(4), { day: 'numeric', month: 'long' }) : 'el día de tu cumpleaños'}, 08:00</span></div>
+    <div class="mail__hero"><img src="img/logo-128.webp" width="48" height="48" alt=""><h3>Feliz <em>cumpleaños</em></h3></div>
+    <div class="mail__body">
+      <p style="margin:0 0 12px">Hola ${first}, en San Pedro te queremos saludar. Para celebrar, tienes <b>${SP.bdayText(bd)}</b>.</p>
+      <p style="margin:0 0 12px" class="small muted">Se aplica solo al pedir con tu cuenta, en la web o por WhatsApp.</p>
+      <a class="mail__cta" href="index.html#catalogo">Elegir mi torta</a>
+    </div>
+    <p class="mail__foot">Recibes este correo porque nos diste tu fecha de cumpleaños · Darme de baja</p>`;
 
   /* ---------- Mis datos ---------- */
   const pf = $('[data-profile]');

@@ -27,7 +27,7 @@
   const CLIENTS = [...new Set(NAMES)].map((n, i) => ({ id: i, name: n, phone: '+56 9 ' + (5000 + Math.floor(rnd() * 4999)) + ' ' + (1000 + Math.floor(rnd() * 8999)),
     consent: rnd() < .62, account: rnd() < .45, since: dISO(-Math.floor(rnd() * 700) - 20) }));
   const CH = { WhatsApp: 46, Instagram: 24, Web: 12, Teléfono: 12, Facebook: 6 };
-  const CH_IC = { WhatsApp: 'wa', Instagram: 'ig', Facebook: 'fb', Web: 'web', Teléfono: 'phone' };
+  const CH_IC = { WhatsApp: 'wa', Instagram: 'ig', Facebook: 'fb', Web: 'web', Teléfono: 'phone', Cupos: 'cal' };
   const PROD_W = { menta: 9, selva: 7, milhoja: 8, amor: 5, 'manjar-nuez': 6, lucuma: 6, frambuesa: 4, bombon: 4, chocolate: 5, terciopelo: 3, moka: 3, amaretto: 2,
     tartas: 6, trufas: 7, marplatense: 4, 'postre-vaso': 5, pan: 3, empanada: 8, pizza: 3, regalo: 2 };
 
@@ -38,18 +38,36 @@
     for (let k = 0; k < n; k++) { const id = wpick(PROD_W), p = SP.byId(id); items.push({ id, size: p.cat === 'tortas' ? wpick({ '8 personas': 3, '15 personas': 5, '25 personas': 3, '45 personas': 1 }) : pick(p.sizes), qty: p.cat === 'tortas' ? 1 : 1 + Math.floor(rnd() * 2) }); }
     return items;
   };
+  // Pasado: pedidos por día aproximados. Desde mañana: se arman según lo ocupado en cada categoría (mismo dato que ve la tienda).
+  const DAYCAP = { 0: 0, 1: 26, 2: 26, 3: 28, 4: 28, 5: 34, 6: 38 };
+  const addOrder = (off, date, items) => {
+    const c = rnd() < .5 ? CLIENTS[Math.floor(Math.pow(rnd(), 1.8) * CLIENTS.length)] : { name: pick(NAMES).split(' ')[0] + ' ' + pick(LAST) + ' ' + pick(LAST)[0] + '.', phone: '+56 9 ' + (5000 + Math.floor(rnd() * 4999)) + ' ' + (1000 + Math.floor(rnd() * 8999)) }, channel = wpick(CH);
+    const lead = Math.min(off + 182, Math.floor(rnd() * rnd() * 10) + 1);
+    const status = off < 0 ? (rnd() < .04 ? 'cancelado' : 'entregado') : off === 0 ? wpick({ entregado: 4, listo: 3, preparacion: 3 }) : off === 1 ? wpick({ preparacion: 2, confirmado: 5 }) : wpick({ confirmado: 8, recibido: 2 });
+    ORDERS.push({ id: 'SP-' + (seq++), client: c.name, phone: c.phone, channel, byAgent: channel !== 'Web' && channel !== 'Teléfono' && rnd() < .7,
+      date, created: dISO(off - lead), hour: Math.round(9 + rnd() * rnd() * 11 + rnd() * 2), mode: rnd() < .68 ? 'Retiro' : 'Despacho',
+      items, total: items.reduce((s, i) => s + price(i.id, i.size) * i.qty, 0) + (rnd() < .3 ? 2500 : 0), status });
+  };
+  const isTorta = b => /^t\d/.test(b);
+  const TW = Object.fromEntries(SP.PRODUCTS.filter(p => p.cat === 'tortas').map(p => [p.id, PROD_W[p.id]]));
+  const BPICK = { tartas: () => ['tartas', 'Entera'], cocteleria: () => ['postre-vaso', pick(['50 ml', '150 ml'])], dulces: () => rnd() < .6 ? ['trufas', pick(['Caja chica', 'Caja grande'])] : ['marplatense', 'Caja x6'],
+    empanadas: () => ['empanada', 'Docena'], pizzas: () => ['pizza', 'Familiar'], pan: () => ['pan', pick(['1 kg', '½ kg'])], regalos: () => ['regalo', 'Única'] };
   for (let off = -182; off <= 16; off++) {
-    const date = dISO(off), max = SP.maxFor(date);
-    if (!max) continue;
-    const n = off <= 0 ? Math.round(max * (.62 + rnd() * .3)) : SP.taken(date) - SP.get('orders', []).filter(o => o.date === date && o.status !== 'cancelado').length;
-    for (let k = 0; k < n; k++) {
-      const c = rnd() < .5 ? CLIENTS[Math.floor(Math.pow(rnd(), 1.8) * CLIENTS.length)] : { name: pick(NAMES).split(' ')[0] + ' ' + pick(LAST) + ' ' + pick(LAST)[0] + '.', phone: '+56 9 ' + (5000 + Math.floor(rnd() * 4999)) + ' ' + (1000 + Math.floor(rnd() * 8999)) }, channel = wpick(CH), items = mkItems();
-      const lead = Math.min(off + 182, Math.floor(rnd() * rnd() * 10) + 1);
-      let status = off < 0 ? (rnd() < .04 ? 'cancelado' : 'entregado') : off === 0 ? wpick({ entregado: 4, listo: 3, preparacion: 3 }) : off === 1 ? wpick({ preparacion: 2, confirmado: 5 }) : wpick({ confirmado: 8, recibido: 2 });
-      ORDERS.push({ id: 'SP-' + (seq++), client: c.name, phone: c.phone, channel, byAgent: channel !== 'Web' && channel !== 'Teléfono' && rnd() < .7,
-        date, created: dISO(off - lead), hour: Math.round(9 + rnd() * rnd() * 11 + rnd() * 2), mode: rnd() < .68 ? 'Retiro' : 'Despacho',
-        items, total: items.reduce((s, i) => s + price(i.id, i.size) * i.qty, 0) + (rnd() < .3 ? 2500 : 0), status });
-    }
+    const date = dISO(off);
+    if (!SP.isOpen(date)) continue;
+    if (off <= 0) { const n = Math.round(DAYCAP[new Date(date + 'T12:00').getDay()] * (.62 + rnd() * .3)); for (let k = 0; k < n; k++) addOrder(off, date, mkItems()); continue; }
+    const lines = [];
+    SP.BUCKETS.forEach(b => {
+      let rem = SP.simB(date, b.id);
+      while (rem > 0) {
+        let it;
+        if (isTorta(b.id)) it = { id: wpick(TW), size: b.id.slice(1) + ' personas', qty: 1 };
+        else { const [id, size] = BPICK[b.id](); it = { id, size, qty: b.id === 'cocteleria' ? 6 * (1 + Math.floor(rnd() * 3)) : b.id === 'pan' ? 1 + Math.floor(rnd() * 3) : Math.min(rem, rnd() < .3 ? 2 : 1) }; }
+        rem -= SP.unitsOf(it); lines.push(it);
+      }
+    });
+    for (let k = lines.length - 1; k > 0; k--) { const j = Math.floor(rnd() * (k + 1)); [lines[k], lines[j]] = [lines[j], lines[k]]; }
+    while (lines.length) addOrder(off, date, lines.splice(0, rnd() < .55 ? 1 : rnd() < .7 ? 2 : 3));
   }
   // pedidos hechos en la tienda de esta demo (aparecen como nuevos)
   const me = SP.session();
@@ -99,8 +117,8 @@
     $('[data-notif-list]').innerHTML = NOTIF.length ? NOTIF.map(x => {
       const pending = x.agent && QUEUE.some(q => q.id === x.ref);
       return `<div class="nitem${x.unread ? ' is-unread' : ''}">
-        <div class="nitem__top"><span class="nitem__ic nitem__ic--${CH_IC[x.ch]}">${chIcon(x.ch)}</span><div><p>${x.text}</p><small>${x.when} · ${x.ch}${x.agent ? ' · ingresado por el agente' : ''}</small></div></div>
-        ${pending ? `<div class="nitem__actions"><button class="btn btn--ok" data-q-confirm="${x.ref}">Confirmar</button><button class="btn btn--line" data-q-edit="${x.ref}">Modificar</button><button class="btn btn--danger" data-q-cancel="${x.ref}">Cancelar</button></div>`
+        <div class="nitem__top"><span class="nitem__ic nitem__ic--${CH_IC[x.ch]}">${chIcon(x.ch)}</span><div><p>${x.text}</p><small>${x.when} · ${x.cupo ? 'Aviso de cupos · también por ' + (alertChannels().filter(c => c !== 'el panel').join(' y ') || 'el panel') : x.ch}${x.agent ? ' · ingresado por el agente' : ''}</small></div></div>
+        ${x.cupo && !x.result ? `<div class="nitem__actions"><button class="btn btn--solid" data-free="${x.d}">Liberar cupos</button><a class="btn btn--line" href="#capacidad">Ver calendario</a></div>` : pending ? `<div class="nitem__actions"><button class="btn btn--ok" data-q-confirm="${x.ref}">Confirmar</button><button class="btn btn--line" data-q-edit="${x.ref}">Modificar</button><button class="btn btn--danger" data-q-cancel="${x.ref}">Cancelar</button></div>`
         : x.result ? `<p class="nitem__done">${x.result}</p>` : ''}
       </div>`;
     }).join('') : '<p class="empty">Sin notificaciones</p>';
@@ -131,6 +149,7 @@
     QUEUE.splice(k, 1);
     DONE.unshift({ t: new Date().toTimeString().slice(0, 5), who: q.client, what: result, ok });
     const n = NOTIF.find(x => x.ref === id); if (n) { n.result = (ok ? '✓ ' : '✕ ') + result; n.unread = false; }
+    const before = ok ? fullKeys() : null;
     if (ok) {
       const o = order || q.order;
       ORDERS.push({ id: 'SP-' + (seq++), client: q.client, phone: q.phone, channel: q.channel, byAgent: true, date: o.date, created: T, hour: new Date().getHours(), mode: o.mode,
@@ -138,6 +157,7 @@
       ORDERS.sort((a, b) => a.date.localeCompare(b.date) || a.hour - b.hour);
     }
     renderNotif(); toast(`${q.client}: ${result.toLowerCase()}`);
+    if (ok) setTimeout(() => checkFull(before), 700);
     const card = $(`[data-review="${id}"]`);
     if (card) { card.classList.add('is-leaving'); setTimeout(() => current === 'agente' && renderAgent(), 500); } else if (current === 'agente') renderAgent();
     if (current === 'resumen') renderResumen();
@@ -181,6 +201,46 @@
   const meterCls = (t, m) => !m ? '' : t >= m ? 'is-full' : t / m >= .85 ? 'is-warn' : '';
   const dayCount = d => ORDERS.filter(o => o.date === d && live(o)).length;
 
+  /* ---------- Cupos por categoría: uso real según los pedidos del panel ---------- */
+  const fmtU = v => Number.isInteger(v) ? v : String(Math.round(v * 10) / 10).replace('.', ',');
+  const usedB = (d, b) => sum(ORDERS.filter(o => o.date === d && live(o)), o => sum(o.items.filter(i => SP.bucketOf(i.id, i.size) === b), SP.unitsOf));
+  const dayRows = d => SP.BUCKETS.map(b => { const max = SP.maxB(d, b.id), used = usedB(d, b.id); return { ...b, max, used, left: Math.max(0, max - used) }; });
+  const dayFill = d => {
+    const rows = dayRows(d), max = sum(rows, r => r.max), used = sum(rows, r => Math.min(r.used, r.max));
+    return { rows, max, used, pct: max ? Math.round(used / max * 100) : 0, full: rows.filter(r => r.max && r.used >= r.max - 1e-9) };
+  };
+  // "tortas de 8 y 15 personas, empanadas y pan por encargo"
+  const catNames = rows => {
+    const t = rows.filter(r => isTorta(r.id)).map(r => r.id.slice(1)), o = rows.filter(r => !isTorta(r.id)).map(r => r.label.charAt(0).toLowerCase() + r.label.slice(1));
+    return SP.listNames([...(t.length ? ['tortas de ' + SP.listNames(t) + ' personas'] : []), ...o]);
+  };
+  const fullDays = () => Array.from({ length: 7 }, (_, k) => dISO(k + 1)).filter(SP.isOpen).map(d => ({ d, full: dayFill(d).full })).filter(x => x.full.length);
+  const fullKeys = () => new Set(fullDays().flatMap(x => x.full.map(r => x.d + '|' + r.id)));
+  const alertChannels = () => { const a = SP.cupos().alerts; return [a.email && 'correo', a.wa && 'WhatsApp', a.web && 'el panel', a.popup && 'ventana emergente'].filter(Boolean); };
+  const dayLong = d => SP.fmt(d, { weekday: 'long', day: 'numeric', month: 'long' });
+  const cupoNotif = (x, when) => ({ id: 'c-' + x.d + '-' + x.full.map(r => r.id).join(''), cupo: true, d: x.d, ch: 'Cupos', when, unread: true,
+    text: `Se llenaron los cupos de <b>${esc(catNames(x.full))}</b> para el ${dayLong(x.d)}` });
+  const popupFull = (list, sample) => openModal(`<p class="eyebrow">Aviso de cupos</p><h2>Se llenaron <em>algunos cupos</em></h2>
+    <p class="muted" style="margin:8px 0 14px">La web y el agente ya no ofrecen estos días para esos productos. Si en la cocina alcanzan, liberen más cupos y se vuelven a ofrecer.</p>
+    <div class="alerts">${list.map(x => `<div class="alert"><div><b>${esc(dayLong(x.d))}</b><small>${esc(catNames(x.full))}</small></div><button class="btn btn--solid btn--sm" data-free="${x.d}">Liberar cupos</button></div>`).join('')}</div>
+    ${sample ? `<div class="mail" style="margin-top:16px"><div class="mail__head" style="padding:12px 16px;border-bottom:1px solid var(--stone)"><small class="muted">Correo al equipo · Asunto</small><br><b style="font-weight:500">Se llenaron los cupos de ${esc(catNames(list[0].full))} para el ${esc(dayLong(list[0].d))}</b></div>
+      <div style="padding:12px 16px" class="small">Hola equipo San Pedro: ese día ya no se ofrece en la web ni en el chat para esos productos. Si pueden preparar más, toquen <b>Liberar cupos</b> en el panel.</div></div>` : ''}
+    <p class="small muted" style="margin:14px 0 0">${alertChannels().length ? 'Este aviso llega por ' + SP.listNames(alertChannels()) + '.' : 'Los avisos están apagados.'} Se cambia en <a class="link" href="#capacidad" data-close-modal-link>Cupos</a>.</p>`);
+  // tras un pedido nuevo: si se llenó una categoría, avisar según lo que prefiere el admin
+  const checkFull = before => {
+    const fresh = fullDays().map(x => ({ d: x.d, full: x.full.filter(r => !before.has(x.d + '|' + r.id)) })).filter(x => x.full.length);
+    if (!fresh.length) return;
+    const a = SP.cupos().alerts;
+    if (a.web) { fresh.forEach(x => NOTIF.unshift(cupoNotif(x, 'Ahora'))); renderNotif(); bellBtn.classList.remove('is-bump'); void bellBtn.offsetWidth; bellBtn.classList.add('is-bump'); }
+    if (a.popup) popupFull(fresh); else toast(`Se llenaron los cupos de ${catNames(fresh[0].full)} para el ${dayLong(fresh[0].d)}`);
+  };
+  const markFreed = d => NOTIF.filter(n => n.cupo && n.d === d && !n.result).forEach(n => { n.result = '✓ Se liberaron más cupos para ese día'; n.unread = false; });
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-free]'); if (!b) return;
+    notifBox.hidden = true; dayModal(b.dataset.free);
+  });
+  document.addEventListener('click', e => { if (e.target.closest('[data-close-modal-link]')) closeModal(); });
+
   // Tooltip para gráficos
   const tip = $('#tip');
   document.addEventListener('mousemove', e => {
@@ -202,24 +262,25 @@
   /* ---------- Resumen ---------- */
   function renderResumen() {
     const h = new Date().getHours();
-    const today = ORDERS.filter(o => o.date === T && live(o)), max = SP.maxFor(T);
+    const today = ORDERS.filter(o => o.date === T && live(o)), fd = fullDays();
     const last7 = ORDERS.filter(o => o.date > dISO(-7) && o.date <= T && live(o)), prev7 = ORDERS.filter(o => o.date > dISO(-14) && o.date <= dISO(-7) && live(o));
-    const tomorrow = SP.maxFor(dISO(1)) ? dISO(1) : dISO(2);
+    const tomorrow = SP.isOpen(dISO(1)) ? dISO(1) : dISO(2);
     const prod = {}; ORDERS.filter(o => o.date === tomorrow && live(o)).forEach(o => o.items.forEach(i => { const k = SP.byId(i.id).name + ' · ' + i.size; prod[k] = (prod[k] || 0) + i.qty; }));
     const toPrice = ORDERS.filter(o => o.fromDemo && o.status === 'recibido').length;
     $('#v-resumen').innerHTML = head(`${h < 12 ? 'Buenos días' : h < 20 ? 'Buenas tardes' : 'Buenas noches'}, <em>San Pedro</em>`, SP.fmt(T, { weekday: 'long', day: 'numeric', month: 'long' }) + ' · datos de ejemplo',
       `<a class="btn btn--line btn--sm" href="index.html" target="_blank">Ver la tienda</a>`) + `
       <div class="grid g-4">
-        <div class="box kpi"><span class="kpi__l">Pedidos para hoy</span><span class="kpi__n">${today.length}<small class="muted" style="font-size:18px"> / ${max}</small></span><div class="meter ${meterCls(today.length, max)}"><span style="width:${max ? today.length / max * 100 : 0}%"></span></div><span class="kpi__s">${Math.max(0, max - today.length)} cupos libres</span></div>
+        <a class="box kpi" href="#capacidad" style="text-decoration:none"><span class="kpi__l">Pedidos para hoy</span><span class="kpi__n">${today.length}</span><span class="kpi__s">${fd.length ? `<span class="down">${fd.length} ${fd.length === 1 ? 'día' : 'días'} con categorías llenas</span> esta semana` : 'Sin categorías llenas esta semana'}</span></a>
         <a class="box kpi" href="#agente" style="text-decoration:none"><span class="kpi__l">Por revisar del agente</span><span class="kpi__n" style="color:${QUEUE.length ? 'var(--cherry)' : 'var(--ok)'}">${QUEUE.length}</span><span class="kpi__s">Próxima revisión: ${h < 11 ? '11:00' : h < 17 ? '17:00' : 'mañana 11:00'}</span></a>
         <div class="box kpi"><span class="kpi__l">Ventas últimos 7 días</span><span class="kpi__n">${SP.money(sum(last7, o => o.total))}</span><span class="kpi__s"><span class="${pct(sum(last7, o => o.total), sum(prev7, o => o.total)) >= 0 ? 'up' : 'down'}">${pct(sum(last7, o => o.total), sum(prev7, o => o.total)) >= 0 ? '▲' : '▼'} ${Math.abs(pct(sum(last7, o => o.total), sum(prev7, o => o.total)))}%</span> vs. semana anterior</span></div>
         <div class="box kpi"><span class="kpi__l">Pedidos por web y agente</span><span class="kpi__n">${Math.round(last7.filter(o => o.byAgent || o.channel === 'Web').length / Math.max(1, last7.length) * 100)}%</span><span class="kpi__s">sin escribir a mano en los últimos 7 días</span></div>
       </div>
       <div class="grid g-main" style="margin-top:18px">
         <div class="box">
-          <div class="box__head"><div><h2>Cupos de los próximos días</h2><p>Pedidos tomados sobre el máximo que definieron</p></div><a class="link" href="#capacidad">Ajustar cupos</a></div>
-          ${barsH(Array.from({ length: 8 }, (_, k) => dISO(k)).filter(d => SP.maxFor(d)).map(d => ({ l: SP.fmt(d), v: dayCount(d), max: SP.maxFor(d) })), (v, d) => `${v} / ${d.max}`)}
-          <p class="small muted" style="margin:12px 0 0">Cuando un día llega al máximo, la web deja de ofrecerlo y el agente propone otra fecha.</p>
+          <div class="box__head"><div><h2>Cupos de los próximos días</h2><p>Ocupación total y categorías que ya se llenaron</p></div><a class="link" href="#capacidad">Ajustar cupos</a></div>
+          ${barsH(Array.from({ length: 8 }, (_, k) => dISO(k + 1)).filter(SP.isOpen).map(d => { const f = dayFill(d); return { l: SP.fmt(d), v: f.used, max: f.max, full: f.full }; }), (v, d) => `${Math.round(v / d.max * 100)}%${d.full.length ? ' · ' + d.full.length + ' llena' + (d.full.length > 1 ? 's' : '') : ''}`)}
+          ${fd.length ? `<div class="alerts" style="margin-top:14px">${fd.slice(0, 3).map(x => `<div class="alert"><div><b>${esc(SP.fmt(x.d, { weekday: 'long', day: 'numeric' }))}</b><small>Lleno: ${esc(catNames(x.full))}</small></div><button class="btn btn--line btn--sm" data-free="${x.d}">Liberar cupos</button></div>`).join('')}</div>` : ''}
+          <p class="small muted" style="margin:12px 0 0">Cada categoría tiene su máximo. Cuando se llena, la web y el agente dejan de ofrecer ese día solo para esos productos.</p>
         </div>
         <div class="box">
           <div class="box__head"><div><h2>Producción para ${SP.fmt(tomorrow, { weekday: 'long' })}</h2><p>Suma automática de lo pedido</p></div></div>
@@ -304,7 +365,8 @@
               <dt>Notas</dt><dd><input name="note" value="${esc(q.order.note)}" disabled></dd>
             </dl>
             ${q.flag ? `<p class="flag">⚠ ${esc(q.flag)}</p>` : ''}
-            <p class="small muted" style="margin:0">Cupos para ese día: ${SP.availability(q.order.date).left} de ${SP.maxFor(q.order.date)}</p>
+            ${(() => { const b = SP.bucketOf(q.order.item, q.order.size), r = dayRows(q.order.date).find(x => x.id === b), need = SP.unitsOf({ id: q.order.item, size: q.order.size, qty: +q.order.qty });
+              return !r || !r.max ? '<p class="small down" style="margin:0">Ese día está cerrado.</p>' : `<p class="small ${r.left < need ? 'down' : 'muted'}" style="margin:0">Cupos de ${esc(r.label.toLowerCase())} ese día: quedan ${fmtU(r.left)} de ${r.max}${r.left < need ? '. Al confirmar se pasa del máximo' : ''}</p>`; })()}
             <div class="extract__actions">
               <button class="btn btn--ok btn--sm" data-q-confirm="${q.id}"><svg><use href="#i-check"/></svg>Confirmar</button>
               <button class="btn btn--line btn--sm" data-q-edit="${q.id}">Modificar</button>
@@ -323,70 +385,98 @@
     }));
   }
 
-  /* ---------- Cupos diarios ---------- */
+  /* ---------- Cupos por categoría ---------- */
   const DOW = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+  const ALERTS = [['email', 'Correo', 'Al correo de la pastelería'], ['wa', 'WhatsApp', 'Mensaje al celular de quien administra'], ['web', 'Notificación en el panel', 'En la campana de arriba'], ['popup', 'Ventana emergente', 'Al abrir el panel o cuando se llena']];
   function renderCapacidad() {
-    const cap = SP.capacity();
+    const c = SP.cupos();
     const start = SP.today(); start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
     const days = Array.from({ length: 35 }, (_, k) => SP.iso(SP.plus(start, k)));
-    $('#v-capacidad').innerHTML = head('Cupos <em>diarios</em>', 'Definan cuántos pedidos pueden tomar cada día. Al llegar al máximo, la web y el agente dejan de ofrecer ese día.') + `
+    const group = (title, f) => `<p class="caps__g">${title}</p><div class="caps">${SP.BUCKETS.filter(f).map(b => `<label class="caps__row"><span>${esc(isTorta(b.id) ? b.id.slice(1) + ' personas' : b.label)}<small>${b.unit} por día</small></span><input type="number" min="0" max="99" name="m-${b.id}" value="${SP.baseMax(b.id)}"></label>`).join('')}</div>`;
+    $('#v-capacidad').innerHTML = head('Cupos por <em>categoría</em>', 'Cuántas tortas de cada tamaño, docenas de empanadas y demás pueden preparar por día. Cuando una categoría se llena, la web y el agente dejan de ofrecer ese día para esos productos, y les llega un aviso para liberar más si alcanzan.') + `
       <div class="grid g-main">
         <div class="box">
-          <div class="box__head"><div><h2>Calendario</h2><p>Toca un día para cambiar su máximo o cerrarlo</p></div>
-            <div class="legend"><span><i style="background:var(--brand)"></i>Con cupos</span><span><i style="background:#D98B2B"></i>Casi lleno</span><span><i style="background:var(--cherry)"></i>Lleno</span><span><i style="background:var(--brand-soft);border-radius:50%"></i>Máximo especial</span></div></div>
+          <div class="box__head"><div><h2>Calendario</h2><p>Toca un día para ver cada categoría y liberar cupos</p></div>
+            <div class="legend"><span><i style="background:var(--brand)"></i>Con cupos</span><span><i style="background:#D98B2B"></i>Casi lleno</span><span><i style="background:var(--cherry)"></i>Categoría llena</span><span><i style="background:var(--brand-soft);border-radius:50%"></i>Ajuste del día</span></div></div>
           <div class="cal">
             ${['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(d => `<span class="cal__dow">${d}</span>`).join('')}
             ${days.map(d => {
-              const m = SP.maxFor(d), t = dayCount(d), past = d < T, dt = new Date(d + 'T12:00');
-              return `<button class="cday${past ? ' is-past' : ''}${!m ? ' is-closed' : ''}${d === T ? ' is-today' : ''}${d in cap.overrides || cap.blocked[d] ? ' is-override' : ''}${m && t >= m ? ' is-full' : ''}" data-cday="${d}">
-                <b>${dt.getDate()}</b><small>${m ? `${t} / ${m}` : 'Cerrado'}</small>${m ? `<div class="meter ${meterCls(t, m)}"><span style="width:${Math.min(100, t / m * 100)}%"></span></div>` : ''}</button>`;
+              const fut = d > T, open = SP.isOpen(d), f = dayFill(d), dt = new Date(d + 'T12:00'), adj = (c.extra[d] && Object.keys(c.extra[d]).length) || c.blocked[d];
+              return `<button class="cday${d < T ? ' is-past' : ''}${!open ? ' is-closed' : ''}${d === T ? ' is-today' : ''}${adj ? ' is-override' : ''}${fut && f.full.length ? ' is-full' : ''}" data-cday="${d}">
+                <b>${dt.getDate()}</b><small>${!open ? 'Cerrado' : fut ? f.pct + '% ocupado' : dayCount(d) + ' pedidos'}</small>${fut && open && f.full.length ? `<span class="cday__full">${f.full.length} llena${f.full.length > 1 ? 's' : ''}</span>` : ''}${fut && open ? `<div class="meter ${f.full.length ? 'is-full' : meterCls(f.used, f.max)}"><span style="width:${f.pct}%"></span></div>` : ''}</button>`;
             }).join('')}
           </div>
         </div>
         <div class="grid" style="align-content:start">
           <form class="box form" data-cap-form>
-            <h2>Máximo por día de la semana</h2>
-            <div class="week-inputs">${[1, 2, 3, 4, 5, 6, 0].map(w => `<label>${DOW[w]}<input type="number" min="0" max="200" name="w${w}" value="${cap.week[w]}"></label>`).join('')}</div>
-            <label class="field"><span>Máximo de tortas por día</span><input type="number" min="0" name="tortas" value="${cap.tortas}"></label>
+            <div><h2>Máximo por día</h2><p class="small muted" style="margin:4px 0 0">Lo que la cocina puede preparar en un día normal.</p></div>
+            ${group('Tortas, por tamaño', b => isTorta(b.id))}
+            ${group('Otros productos', b => !isTorta(b.id))}
+            <p class="caps__g">Días cerrados</p>
+            <div class="dows">${[1, 2, 3, 4, 5, 6, 0].map(w => `<label class="dow"><input type="checkbox" name="c${w}" ${c.closed.includes(w) ? 'checked' : ''}><span>${DOW[w]}</span></label>`).join('')}</div>
             <label class="field"><span>Anticipación mínima</span><select name="lead"><option>Desde el día siguiente</option><option>48 horas</option><option>Mismo día antes de las 12:00</option></select></label>
-            <div class="switch"><span><b>Cerrar el día al llenarse</b><small>La web lo muestra como completo</small></span><input type="checkbox" checked></div>
-            <div class="switch"><span><b>Avisar al 85%</b><small>Notificación cuando quedan pocos cupos</small></span><input type="checkbox" checked></div>
             <button class="btn btn--solid" type="submit">Guardar cupos</button>
           </form>
-          <p class="note">Los cambios se ven al tiro en la tienda: abran <a href="index.html#pedido" target="_blank">Tu pedido</a> y revisen los días disponibles.</p>
+          <div class="box form">
+            <div><h2>Aviso cuando se llena</h2><p class="small muted" style="margin:4px 0 0">Dice qué categoría se llenó y para qué día, con un botón para liberar más cupos. Elijan por dónde les llega.</p></div>
+            <div>${ALERTS.map(([k, t, sub]) => `<div class="switch"><span><b>${t}</b><small>${sub}</small></span><input type="checkbox" data-alert="${k}" ${c.alerts[k] ? 'checked' : ''}></div>`).join('')}</div>
+            <button class="btn btn--line btn--sm" type="button" data-alert-test>Ver un aviso de ejemplo</button>
+          </div>
+          <p class="note">Los cambios se ven al tiro en la tienda: abran <a href="index.html#pedido" target="_blank">Tu pedido</a>, agreguen una torta y revisen los días disponibles.</p>
         </div>
       </div>`;
     $('[data-cap-form]').addEventListener('submit', e => {
       e.preventDefault();
-      const c = SP.get('capacity', {}), f = e.target.elements;
-      c.week = {}; [0, 1, 2, 3, 4, 5, 6].forEach(w => c.week[w] = +f['w' + w].value);
-      c.tortas = +f.tortas.value; SP.set('capacity', c);
-      toast('Cupos guardados. La web ya muestra los nuevos máximos'); renderCapacidad();
+      const x = SP.get('cupos', {}), f = e.target.elements;
+      x.max = {}; SP.BUCKETS.forEach(b => x.max[b.id] = Math.max(0, +f['m-' + b.id].value || 0));
+      x.closed = [0, 1, 2, 3, 4, 5, 6].filter(w => f['c' + w].checked);
+      SP.set('cupos', x); toast('Cupos guardados. La web ya muestra los nuevos máximos'); renderCapacidad();
     });
   }
+  document.addEventListener('change', e => {
+    const i = e.target.closest('[data-alert]'); if (!i) return;
+    const x = SP.get('cupos', {}); x.alerts = { ...SP.cupos().alerts, [i.dataset.alert]: i.checked }; SP.set('cupos', x);
+    toast(i.checked ? 'Aviso activado' : 'Aviso desactivado');
+  });
   document.addEventListener('click', e => {
-    const b = e.target.closest('[data-cday]'); if (!b) return;
-    const d = b.dataset.cday, cap = SP.capacity(), m = SP.maxFor(d);
-    openModal(`<p class="eyebrow">Ajustar día</p><h2>${SP.fmt(d, { weekday: 'long', day: 'numeric', month: 'long' })}</h2>
-      <p class="muted">${dayCount(d)} pedidos tomados. Máximo normal de los ${DOW[new Date(d + 'T12:00').getDay()].toLowerCase()}: ${cap.week[new Date(d + 'T12:00').getDay()]}.</p>
+    if (!e.target.closest('[data-alert-test]')) return;
+    const list = fullDays(); popupFull(list.length ? list.slice(0, 3) : [{ d: dISO(2), full: [SP.BUCKETS[1]] }], true);
+  });
+  // Ajustar un día: máximo por categoría solo para esa fecha
+  function dayModal(d) {
+    const c = SP.cupos(), rows = dayRows(d), ex = c.extra[d] || {};
+    openModal(`<p class="eyebrow">Cupos del día</p><h2>${esc(dayLong(d))}</h2>
+      <p class="muted" style="margin:6px 0 12px">${dayCount(d)} pedidos tomados. Suban el máximo donde la cocina alcance a preparar más; la web y el agente lo vuelven a ofrecer al tiro.</p>
       <form class="form" data-day-form="${d}">
-        <label class="field"><span>Máximo de pedidos para este día</span><input type="number" min="0" name="max" value="${m}"></label>
-        <div class="switch"><span><b>Cerrar este día</b><small>Feriado, vacaciones o mantención</small></span><input type="checkbox" name="block" ${cap.blocked[d] ? 'checked' : ''}></div>
+        <div class="drows">${rows.map(r => { const m = SP.baseMax(r.id) + (+ex[r.id] || 0), full = m && r.used >= m - 1e-9;
+          return `<div class="drow${full ? ' is-full' : ''}"><span class="drow__l">${esc(r.label)}<small>${fmtU(r.used)} de ${m} ${r.unit}${full ? ' · lleno' : ''}</small></span>
+            <span class="drow__m meter ${full ? 'is-full' : meterCls(r.used, m)}"><span style="width:${m ? Math.min(100, r.used / m * 100) : 0}%"></span></span>
+            <span class="stepper"><button type="button" data-stp="-1" aria-label="Menos">−</button><input type="number" min="0" max="99" name="d-${r.id}" value="${m}" aria-label="Máximo de ${esc(r.label)}"><button type="button" data-stp="1" aria-label="Más">+</button></span></div>`; }).join('')}</div>
+        <div class="switch"><span><b>Cerrar este día</b><small>Feriado, vacaciones o mantención</small></span><input type="checkbox" name="block" ${c.blocked[d] ? 'checked' : ''}></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn--solid" type="submit">Guardar</button><button class="btn btn--line" type="button" data-day-reset="${d}">Volver al normal</button></div>
       </form>`);
+  }
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-cday]'); if (b) return dayModal(b.dataset.cday);
+    const s = e.target.closest('[data-stp]'); if (!s) return;
+    const i = s.parentNode.querySelector('input'); i.value = Math.max(0, (+i.value || 0) + +s.dataset.stp);
   });
   document.addEventListener('submit', e => {
     const f = e.target.closest('[data-day-form]'); if (!f) return;
     e.preventDefault();
-    const d = f.dataset.dayForm, c = SP.get('capacity', {});
-    c.overrides = c.overrides || {}; c.blocked = c.blocked || {};
-    c.overrides[d] = +f.elements.max.value; if (f.elements.block.checked) c.blocked[d] = true; else delete c.blocked[d];
-    SP.set('capacity', c); closeModal(); renderCapacidad(); toast('Día actualizado');
+    const d = f.dataset.dayForm, x = SP.get('cupos', {}), prev = (x.extra || {})[d] || {};
+    x.extra = x.extra || {}; x.blocked = x.blocked || {};
+    const ex = {}; let freed = 0;
+    SP.BUCKETS.forEach(b => { const v = +f.elements['d-' + b.id].value - SP.baseMax(b.id); if (v) ex[b.id] = v; freed += Math.max(0, v - (+prev[b.id] || 0)); });
+    if (Object.keys(ex).length) x.extra[d] = ex; else delete x.extra[d];
+    if (f.elements.block.checked) x.blocked[d] = true; else delete x.blocked[d];
+    SP.set('cupos', x); if (freed) markFreed(d);
+    closeModal(); render(); renderNotif(); toast(freed ? `Listo: ${freed} ${freed === 1 ? 'cupo más' : 'cupos más'} para el ${SP.fmt(d, { weekday: 'long', day: 'numeric' })}. La web ya los ofrece` : 'Día actualizado');
   });
   document.addEventListener('click', e => {
     const b = e.target.closest('[data-day-reset]'); if (!b) return;
-    const c = SP.get('capacity', {}); if (c.overrides) delete c.overrides[b.dataset.dayReset]; if (c.blocked) delete c.blocked[b.dataset.dayReset];
-    SP.set('capacity', c); closeModal(); renderCapacidad(); toast('El día vuelve a su máximo normal');
+    const x = SP.get('cupos', {}); if (x.extra) delete x.extra[b.dataset.dayReset]; if (x.blocked) delete x.blocked[b.dataset.dayReset];
+    SP.set('cupos', x); closeModal(); render(); toast('El día vuelve a sus máximos normales');
   });
 
   /* ---------- Reportería ---------- */
@@ -436,6 +526,7 @@
   const CAMPS = SP.PEAKS.map(p => ({ ...p, status: T <= SP.cutoff(p) ? (p === SP.activePromo() ? 'activa' : 'programada') : 'finalizada', audience: 'Clientes con correo aceptado' }));
   const subs = CLIENTS.filter(c => c.consent).length * 37; // ejemplo
   function renderCampanas() {
+    const BD = SP.bday(), bdThisWeek = 3 + CLIENTS.length % 5;
     $('#v-campanas').innerHTML = head('Campañas y <em>fechas especiales</em>', 'Avisen con tiempo de las fechas de más demanda para repartir el trabajo. El producto se prepara fresco para el día elegido; solo el pedido se hace antes.',
       `<button class="btn btn--solid btn--sm" data-new-camp>+ Nueva campaña</button>`) + `
       <p class="note"><span><b>Propuesta para conversar:</b> ofrecer cerca de un 10% de descuento a quien encargue con anticipación para la fecha elegida. Hoy no se muestra en la tienda; se activaría solo si les parece.</span></p>
@@ -452,9 +543,19 @@
             <div class="chips">${SP.PRODUCTS.slice(0, 12).map(p => `<label><input type="checkbox" ${['menta', 'milhoja', 'selva', 'trufas'].includes(p.id) ? 'checked' : ''}><span>${esc(p.name)}</span></label>`).join('')}</div>
             <p class="small muted" style="margin:12px 0 0">Si no eligen nada, se mandan los 3 más pedidos de la semana anterior.</p>
           </div>
+          <form class="box form" data-bday-form>
+            <div class="box__head" style="margin:0"><div><h2>Saludo de cumpleaños</h2><p>Correo automático el día del cumpleaños</p></div><span class="st st--${BD.on ? 'activa' : 'borrador'}">${BD.on ? 'Activo' : 'Apagado'}</span></div>
+            <div class="row"><label class="field"><span>Descuento</span><select name="off">${[5, 10, 15, 20].map(n => `<option value="${n}" ${n === +BD.off ? 'selected' : ''}>${n}%</option>`).join('')}</select></label>
+              <label class="field"><span>Válido</span><select name="scope"><option value="semana" ${BD.scope === 'semana' ? 'selected' : ''}>Toda la semana del cumpleaños</option><option value="dia" ${BD.scope === 'dia' ? 'selected' : ''}>Solo el día</option></select></label></div>
+            <div class="switch"><span><b>Enviar el saludo</b><small>A clientes con cuenta y fecha de cumpleaños</small></span><input type="checkbox" name="on" ${BD.on ? 'checked' : ''}></div>
+            <div class="mail"><div style="padding:12px 16px;border-bottom:1px solid var(--stone)"><small class="muted">Asunto</small><br><b style="font-weight:500">¡Feliz cumpleaños, Camila! 🎂</b></div>
+              <div style="padding:12px 16px" class="small" data-bday-prev>En San Pedro te queremos saludar. Para celebrar, tienes <b>${SP.bdayText(BD)}</b>.</div></div>
+            <p class="small muted" style="margin:0">${bdThisWeek} clientes de ejemplo cumplen años esta semana.</p>
+            <button class="btn btn--solid btn--sm" type="submit">Guardar saludo</button>
+          </form>
           <div class="box box--sand"><h2>Ideas para sumar</h2>
             <ul class="small" style="margin:10px 0 0;padding-left:18px;display:grid;gap:6px">
-              <li>Recordatorio de cumpleaños 10 días antes, con la torta que pidieron el año pasado.</li>
+              <li>Recordar 10 días antes del cumpleaños la torta que pidieron el año pasado.</li>
               <li>“Te extrañamos”: a quien no pide hace 3 meses, puntos dobles por una semana.</li>
               <li>Puntos dobles los días con más cupos libres (martes y miércoles).</li>
             </ul>
@@ -462,6 +563,15 @@
         </div>
       </div>`;
   }
+  document.addEventListener('change', e => {
+    const f = e.target.closest('[data-bday-form]'); if (!f) return;
+    $('[data-bday-prev]').innerHTML = `En San Pedro te queremos saludar. Para celebrar, tienes <b>${SP.bdayText({ off: f.elements.off.value, scope: f.elements.scope.value })}</b>.`;
+  });
+  document.addEventListener('submit', e => {
+    const f = e.target.closest('[data-bday-form]'); if (!f) return;
+    e.preventDefault(); SP.set('bday', { on: f.elements.on.checked, off: +f.elements.off.value, scope: f.elements.scope.value });
+    renderCampanas(); toast('Saludo de cumpleaños guardado');
+  });
   document.addEventListener('click', e => {
     if (!e.target.closest('[data-new-camp]')) return;
     const nextPeak = CAMPS.find(c => c.status !== 'finalizada');
@@ -497,7 +607,7 @@
   function renderClientes() {
     const stats = CLIENTS.map(c => {
       const os = ORDERS.filter(o => o.client === c.name && live(o) && o.date <= T);
-      return { ...c, n: os.length, spent: sum(os, o => o.total), last: os.length ? os[os.length - 1].date : null, pts: Math.floor(sum(os, o => o.total) / 1000) + (c.account ? 50 : 0) };
+      return { ...c, n: os.length, spent: sum(os, o => o.total), last: os.length ? os[os.length - 1].date : null, pts: SP.pointsFor(sum(os, o => o.total)) + (c.account ? SP.premios().welcome : 0) };
     }).sort((a, b) => b.spent - a.spent);
     $('#v-clientes').innerHTML = head('Clientes y <em>puntos</em>', 'Quién compra, cada cuánto y cuántos puntos lleva. Propuesta de Club San Pedro para conversar.') + `
       <div class="grid g-main">
@@ -508,18 +618,44 @@
           </tbody></table></div>
         </div>
         <div class="grid" style="align-content:start">
-          <form class="box form" data-points-form>
+          <form class="box form" data-points-form novalidate>
             <h2>Reglas del Club San Pedro</h2>
-            <div class="row"><label class="field"><span>Puntos por cada $1.000</span><input type="number" value="1" min="0"></label><label class="field"><span>Bono al crear cuenta</span><input type="number" value="50"></label></div>
-            <div class="row"><label class="field"><span>Bono de cumpleaños</span><input type="number" value="100"></label><label class="field"><span>Vencen después de</span><select><option>12 meses</option><option>6 meses</option><option>No vencen</option></select></label></div>
-            <h2 style="font-size:18px;margin-top:6px">Recompensas</h2>
-            <div class="prod"><div><span>10% en el próximo pedido</span><b>150</b></div><div><span>Caja de trufas</span><b>300</b></div><div><span>Kuchen de regalo</span><b>400</b></div><div><span>Torta para 8 personas</span><b>900</b></div></div>
+            <div class="row"><label class="field"><span>Un punto cada</span><input type="number" name="per" value="${PZ.per}" min="100" step="100"></label><label class="field"><span>Bono al crear cuenta</span><input type="number" name="welcome" value="${PZ.welcome}" min="0"></label></div>
+            <p class="small muted" style="margin:-6px 0 0">En la web no se muestra esta regla: solo dice que mientras más pedidos, más puntos y premios.</p>
+            <label class="field"><span>Los puntos vencen después de</span><select><option>12 meses</option><option>6 meses</option><option>No vencen</option></select></label>
+            <div><h2 style="font-size:18px;margin-top:6px">Premios por nivel</h2><p class="small muted" style="margin:4px 0 0">Al llegar a cada nivel, el cliente elige uno de estos productos de regalo.</p></div>
+            <div class="levels" data-levels>${levelsHTML()}</div>
+            <button class="btn btn--line btn--sm" type="button" data-lv-add>+ Agregar nivel</button>
             <button class="btn btn--solid" type="submit">Guardar reglas</button>
           </form>
         </div>
       </div>`;
-    $('[data-points-form]').addEventListener('submit', e => { e.preventDefault(); toast('Reglas guardadas (demo)'); });
+    $('[data-points-form]').addEventListener('submit', e => {
+      e.preventDefault(); const f = e.target.elements;
+      PZ.per = Math.max(100, +f.per.value || 500); PZ.welcome = Math.max(0, +f.welcome.value || 0);
+      PZ.levels = PZ.levels.filter(l => l.gifts.length).sort((x, y) => x.pts - y.pts);
+      SP.set('premios', PZ); renderClientes(); toast('Reglas guardadas. La cuenta de cada cliente ya muestra los nuevos premios');
+    });
   }
+  // Premios por nivel: copia editable que se guarda al tocar "Guardar reglas"
+  let PZ = JSON.parse(JSON.stringify(SP.premios()));
+  const levelsHTML = () => PZ.levels.map((l, i) => `<div class="lv">
+      <div class="lv__h"><label>Al llegar a <input type="number" min="1" value="${l.pts}" data-lv-pts="${i}"> puntos</label><button type="button" class="lv__x" data-lv-del="${i}" aria-label="Quitar nivel">Quitar</button></div>
+      <div class="lv__gifts">${l.gifts.map((g, j) => `<span class="gift">${esc(SP.giftName(g))}<button type="button" data-gift-del="${i}|${j}" aria-label="Quitar ${esc(SP.giftName(g))}">×</button></span>`).join('')}
+        <select data-gift-add="${i}" aria-label="Agregar premio"><option value="">+ Agregar premio</option>${SP.PRODUCTS.map(p => `<optgroup label="${esc(p.name)}">${p.sizes.map(z => p.id + '|' + z).filter(g => !l.gifts.includes(g)).map(g => `<option value="${esc(g)}">${esc(p.sizes.length > 1 ? g.split('|')[1] : p.name)}</option>`).join('')}</optgroup>`).join('')}</select></div>
+    </div>`).join('') || '<p class="empty">Sin niveles. Agreguen uno.</p>';
+  const redrawLevels = () => { const el = $('[data-levels]'); if (el) el.innerHTML = levelsHTML(); };
+  document.addEventListener('change', e => {
+    const t = e.target;
+    if (t.matches('[data-lv-pts]')) { PZ.levels[+t.dataset.lvPts].pts = Math.max(1, +t.value || 1); }
+    if (t.matches('[data-gift-add]') && t.value) { PZ.levels[+t.dataset.giftAdd].gifts.push(t.value); redrawLevels(); }
+  });
+  document.addEventListener('click', e => {
+    const t = e.target;
+    if (t.closest('[data-lv-add]')) { const last = PZ.levels[PZ.levels.length - 1]; PZ.levels.push({ pts: last ? last.pts * 2 : 250, gifts: [] }); redrawLevels(); }
+    if (t.closest('[data-lv-del]')) { PZ.levels.splice(+t.closest('[data-lv-del]').dataset.lvDel, 1); redrawLevels(); }
+    if (t.closest('[data-gift-del]')) { const [i, j] = t.closest('[data-gift-del]').dataset.giftDel.split('|').map(Number); PZ.levels[i].gifts.splice(j, 1); redrawLevels(); }
+  });
 
   /* ---------- Chatbot y canales ---------- */
   function renderCanales() {
@@ -560,7 +696,7 @@
   /* ---------- Pedido telefónico ---------- */
   document.addEventListener('click', e => {
     if (!e.target.closest('[data-new-order]')) return;
-    const firstOpen = Array.from({ length: 14 }, (_, k) => dISO(k + 1)).find(d => SP.availability(d).left > 0);
+    const firstOpen = Array.from({ length: 14 }, (_, k) => dISO(k + 1)).find(SP.isOpen);
     openModal(`<p class="eyebrow">Pedido telefónico o en tienda</p><h2>Nuevo <em>pedido</em></h2>
       <form class="form" data-phone-form style="margin-top:14px">
         <div class="row"><label class="field"><span>Cliente</span><input name="client" required list="clients"><datalist id="clients">${CLIENTS.map(c => `<option value="${esc(c.name)}">`).join('')}</datalist></label><label class="field"><span>Teléfono</span><input name="phone" type="tel"></label></div>
@@ -571,16 +707,20 @@
         <button class="btn btn--solid" type="submit">Guardar pedido</button>
       </form>`);
     const f = $('[data-phone-form]');
-    const cupo = () => { const a = SP.availability(f.elements.date.value); $('[data-cupo]').innerHTML = a.max ? `Ese día quedan <b>${a.left}</b> de ${a.max} cupos.` : '<span class="down">Ese día está cerrado.</span>'; };
-    f.elements.item.addEventListener('change', () => f.elements.size.innerHTML = SP.byId(f.elements.item.value).sizes.map(s => `<option>${s}</option>`).join(''));
-    f.elements.date.addEventListener('change', cupo); cupo();
+    const cupo = () => {
+      const x = f.elements, r = dayRows(x.date.value).find(b => b.id === SP.bucketOf(x.namedItem('item').value, x.size.value));
+      $('[data-cupo]').innerHTML = !r || !r.max ? '<span class="down">Ese día está cerrado.</span>' : r.left <= 0 ? `<span class="down">Ese día ya se llenaron los cupos de ${esc(r.label.toLowerCase())}.</span> Pueden guardarlo igual o elegir otro día.` : `Ese día quedan <b>${fmtU(r.left)}</b> de ${r.max} cupos de ${esc(r.label.toLowerCase())}.`;
+    };
+    f.elements.namedItem('item').addEventListener('change', () => { f.elements.size.innerHTML = SP.byId(f.elements.namedItem('item').value).sizes.map(s => `<option>${s}</option>`).join(''); cupo(); });
+    f.elements.size.addEventListener('change', cupo); f.elements.date.addEventListener('change', cupo); cupo();
     f.addEventListener('submit', ev => {
       ev.preventDefault(); const x = f.elements;
       if (!x.client.value.trim()) return x.client.focus();
+      const before = fullKeys();
       ORDERS.push({ id: 'SP-' + (seq++), client: x.client.value, phone: x.phone.value, channel: 'Teléfono', date: x.date.value, created: T, hour: new Date().getHours(), mode: x.mode.value,
-        items: [{ id: x.item.value, size: x.size.value, qty: 1 }], total: price(x.item.value, x.size.value), status: 'confirmado', note: x.note.value });
+        items: [{ id: x.namedItem('item').value, size: x.size.value, qty: 1 }], total: price(x.namedItem('item').value, x.size.value), status: 'confirmado', note: x.note.value });
       ORDERS.sort((a, b) => a.date.localeCompare(b.date) || a.hour - b.hour);
-      closeModal(); toast('Pedido guardado'); render();
+      closeModal(); toast('Pedido guardado'); render(); setTimeout(() => checkFull(before), 700);
     });
   });
 
@@ -604,6 +744,10 @@
     scrollTo(0, 0);
   };
   addEventListener('hashchange', () => show(location.hash.slice(1)));
+  const startFull = fullDays(), al = SP.cupos().alerts;
+  if (al.web) startFull.forEach((x, i) => NOTIF.push(cupoNotif(x, i ? 'Hoy 08:00' : 'Hoy 08:00')));
   renderNotif();
   show(location.hash.slice(1) || 'resumen');
+  let seen = false; try { seen = sessionStorage.getItem('sp-cupos-popup') === '1'; sessionStorage.setItem('sp-cupos-popup', '1'); } catch (_) {}
+  if (al.popup && startFull.length && !seen) setTimeout(() => modal.hidden && popupFull(startFull.slice(0, 4)), 1200);
 })();

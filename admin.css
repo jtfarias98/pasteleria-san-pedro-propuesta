@@ -128,3 +128,45 @@
 .week-inputs input{font-size:16px;padding:9px 0;-moz-appearance:textfield}
 .week-inputs input::-webkit-inner-spin-button,.week-inputs input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 .week-inputs label{font-size:10px;letter-spacing:.04em}
+
+/* Cupos por categoría */
+.nitem__ic--cal{background:#FBE3E5;color:var(--cherry)}
+.cday__full{align-self:flex-start;padding:2px 7px;border-radius:999px;background:#FBE3E5;color:var(--cherry);font:500 10.5px/1.4 var(--sans)}
+.caps__g{margin:4px 0 -4px;font:500 11px/1 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.caps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.caps__row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 8px 8px 12px;border:1.5px solid var(--sand);border-radius:14px;background:#fff;font-size:13px}
+.caps__row small{display:block;color:var(--muted);font-size:11px}
+.caps__row input,.stepper input{width:52px;text-align:center;border:1.5px solid var(--stone);border-radius:10px;padding:7px 2px;font:400 17px/1 var(--serif);color:var(--ink);background:#fff;-moz-appearance:textfield}
+.caps__row input::-webkit-inner-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.dows{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.dow{position:relative}
+.dow input{position:absolute;opacity:0}
+.dow span{display:block;text-align:center;padding:9px 0;border-radius:10px;border:1.5px solid var(--stone);font-size:12px;cursor:pointer;transition:all .3s var(--ease)}
+.dow input:checked+span{background:var(--brand-deep);border-color:var(--brand-deep);color:#fff}
+.dow input:focus-visible+span{outline:2px solid var(--brand);outline-offset:2px}
+.alerts{display:grid;gap:8px}
+.alert{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border-radius:14px;background:#FDF1F1;border:1px solid #F3D3D6}
+.alert b{display:block;font-weight:500}
+.alert b::first-letter{text-transform:uppercase}
+.alert small{color:var(--muted);font-size:12.5px}
+.drows{display:grid;gap:6px;max-height:52vh;overflow:auto;padding-right:4px}
+.drow{display:grid;grid-template-columns:1fr 90px auto;align-items:center;gap:12px;padding:8px 10px;border-radius:12px;border:1px solid var(--sand)}
+.drow.is-full{background:#FDF1F1;border-color:#F3D3D6}
+.drow__l{font-size:13.5px}
+.drow__l small{display:block;color:var(--muted);font-size:11.5px}
+.drow__m{height:6px;margin-top:0}
+.stepper{display:flex;align-items:center;gap:4px}
+.stepper button{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--stone);background:#fff;font-size:16px;line-height:1;color:var(--ink)}
+.stepper button:hover{border-color:var(--brand)}
+@media (max-width:600px){.caps{grid-template-columns:1fr}.drow{grid-template-columns:1fr auto}.drow__m{display:none}}
+/* Premios por nivel */
+.levels{display:grid;gap:10px}
+.lv{padding:12px;border-radius:16px;border:1.5px solid var(--sand);background:#fff;display:grid;gap:10px}
+.lv__h{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13.5px}
+.lv__h input{width:72px;text-align:center;border:1.5px solid var(--stone);border-radius:10px;padding:6px 2px;font:400 17px/1 var(--serif);color:var(--ink);margin:0 4px}
+.lv__x{background:none;border:0;color:var(--muted);font-size:12px;text-decoration:underline;cursor:pointer}
+.lv__gifts{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.gift{display:inline-flex;align-items:center;gap:6px;padding:5px 6px 5px 12px;border-radius:999px;background:var(--sand);font-size:12.5px}
+.gift button{width:22px;height:22px;border-radius:50%;border:0;background:#fff;color:var(--muted);line-height:1;cursor:pointer}
+.lv__gifts select{border:1.5px dashed var(--stone);border-radius:999px;padding:5px 10px;font:inherit;font-size:12.5px;background:#fff;color:var(--brand);max-width:100%}
+.modal__box h2::first-letter{text-transform:uppercase}

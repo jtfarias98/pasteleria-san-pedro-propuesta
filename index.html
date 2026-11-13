@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="img/hero-1600.webp" imagesrcset="img/hero-800.webp 800w, img/hero-1600.webp 1600w" imagesizes="100vw">
-<link rel="stylesheet" href="styles.css?v=4">
+<link rel="stylesheet" href="styles.css?v=5">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Bakery","name":"Pastelería y Panadería San Pedro","foundingDate":"1960","telephone":"+56452419874","email":"sanpedroproductos@gmail.com","address":{"@type":"PostalAddress","streetAddress":"Ernesto Wagner 1327","addressLocality":"Villarrica","addressRegion":"La Araucanía","addressCountry":"CL"},"openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],"opens":"09:00","closes":"20:00"}],"sameAs":["https://www.instagram.com/pasteleriasanpedrovillarrica/","https://www.facebook.com/deliciasdesanpedro/"]}
 </script>
@@ -155,10 +155,10 @@
         <p>Crea tu cuenta con Google o con tu correo y deja de repetir el mismo mensaje cada vez.</p>
         <ul class="perks">
           <li><b>Repite tu pedido</b> de siempre con un clic.</li>
-          <li><b>Suma puntos</b> en cada compra y canjéalos por descuentos.</li>
+          <li><b>Suma puntos</b> con cada pedido: mientras más pides, más premios de la casa puedes elegir.</li>
           <li><b>Destacados de la semana</b> en tu correo, una vez a la semana.</li>
           <li><b>Aviso de fechas especiales</b> para encargar con tiempo en Navidad, Fiestas Patrias y más.</li>
-          <li><b>Un regalo en tu cumpleaños</b>.</li>
+          <li><b>Saludo de cumpleaños</b> por correo, con un descuento para celebrar.</li>
         </ul>
         <button class="btn btn--cream" data-open-auth="register">Crear mi cuenta</button>
       </div>
@@ -166,11 +166,11 @@
         <div class="loyalty">
           <img src="img/logo-128.webp" alt="" width="54" height="54">
           <p class="loyalty__name">Club San Pedro</p>
-          <p class="loyalty__pts"><b>240</b> puntos</p>
-          <div class="loyalty__bar"><span style="width:60%"></span></div>
-          <p class="loyalty__next">Te faltan 160 puntos para un <b>Kuchen de regalo</b></p>
+          <p class="loyalty__pts"><b>220</b> puntos</p>
+          <div class="loyalty__bar"><span style="width:88%"></span></div>
+          <p class="loyalty__next">Te faltan 30 puntos para <b>elegir tu primer premio</b></p>
         </div>
-        <p class="club__note">1 punto por cada $1.000 · 400 puntos = un kuchen</p>
+        <p class="club__note">Más pedidos, más puntos y más premios para elegir</p>
       </div>
     </div>
   </section>
@@ -271,6 +271,8 @@
         <legend>¿Para qué día?</legend>
         <div class="days" data-days></div>
         <p class="days__legend"><i class="d-ok"></i>Hay cupos <i class="d-pocos"></i>Quedan pocos <i class="d-off"></i>Completo o cerrado</p>
+        <p class="days__note" data-day-note hidden></p>
+        <p class="days__hint">Cada producto tiene sus cupos por día: los días cambian según lo que lleves.</p>
       </fieldset>
       <div class="seg" role="radiogroup" aria-label="Entrega">
         <label><input type="radio" name="mode" value="Retiro en tienda" checked><span>Retiro en tienda</span></label>
@@ -326,7 +328,7 @@
       <label class="field"><span>Correo</span><input name="email" type="email" autocomplete="email" required></label>
       <div class="bform__row">
         <label class="field"><span>Contraseña</span><input name="password" type="password" autocomplete="new-password" required minlength="6"></label>
-        <label class="field"><span>Cumpleaños <small>(opcional)</small></span><input name="birthday" type="date"></label>
+        <label class="field"><span>Cumpleaños <small>(para tu saludo y descuento)</small></span><input name="birthday" type="date"></label>
       </div>
       <label class="check"><input type="checkbox" name="promos"><span>Quiero recibir los destacados de la semana y promociones por correo (1 vez a la semana como máximo).</span></label>
       <label class="check"><input type="checkbox" name="terms" required><span>Acepto los términos y la política de privacidad.</span></label>
@@ -346,7 +348,7 @@
 
 <p class="demo-tag">Propuesta de diseño · versión de prueba por José Farías</p>
 
-<script src="data.js?v=4"></script>
-<script src="main.js?v=4"></script>
+<script src="data.js?v=5"></script>
+<script src="main.js?v=5"></script>
 </body>
 </html>

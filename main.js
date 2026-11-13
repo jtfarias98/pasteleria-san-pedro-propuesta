@@ -78,7 +78,7 @@
 
   /* ---------- Carro ---------- */
   let cart = SP.get('cart', []);
-  const saveCart = () => { SP.set('cart', cart); renderCart(); };
+  const saveCart = () => { SP.set('cart', cart); renderCart(); if (current === 'book') renderDays(); };
   const bagBtn = $('#bag-btn'), bagCount = $('[data-bag-count]');
   document.addEventListener('click', e => {
     const b = e.target.closest('[data-add]');
@@ -113,32 +113,36 @@
     saveCart();
   });
 
-  // Días con cupos (los máximos diarios los define el admin)
-  const daysEl = $('[data-days]');
+  // Días con cupos: dependen de lo que lleva el pedido (cada categoría tiene su máximo diario)
+  const daysEl = $('[data-days]'), dayNote = $('[data-day-note]');
   const renderDays = () => {
-    const out = [];
-    for (let k = 1; k <= 16; k++) {
-      const d = SP.iso(SP.plus(SP.today(), k)), a = SP.availability(d);
-      const off = a.state === 'cerrado' || a.state === 'completo';
+    const out = [], avs = {};
+    for (let k = 1; k <= 16; k++) { const d = SP.iso(SP.plus(SP.today(), k)); avs[d] = SP.availability(d, cart); }
+    const isOff = a => a.state === 'cerrado' || a.state === 'completo';
+    if (day && (!avs[day] || isOff(avs[day]))) day = null;
+    for (const d in avs) {
+      const a = avs[d], off = isOff(a);
       if (!day && !off) day = d;
       const dt = new Date(d + 'T12:00');
       out.push(`<button type="button" class="day${off ? ' is-off' : ''}${a.state === 'pocos' ? ' is-pocos' : ''}${d === day ? ' is-selected' : ''}" data-day="${d}" ${off ? 'aria-disabled="true"' : ''}
-        title="${a.state === 'cerrado' ? 'Cerrado' : a.state === 'completo' ? 'Sin cupos' : `Quedan ${a.left} cupos`}">
+        title="${esc(a.reason)}" data-reason="${esc(a.reason)}">
         <small>${dt.toLocaleDateString('es-CL', { weekday: 'short' })}</small><b>${dt.getDate()}</b><small>${dt.toLocaleDateString('es-CL', { month: 'short' })}</small></button>`);
     }
     daysEl.innerHTML = out.join('');
+    const skipped = Object.keys(avs).filter(d => d < day && avs[d].state === 'completo');
+    if (dayNote) { dayNote.hidden = !skipped.length; dayNote.textContent = skipped.length ? `${avs[skipped[0]].reason} el ${SP.fmt(skipped[0], { weekday: 'long', day: 'numeric' })}. Te mostramos el primer día disponible.` : ''; }
   };
   daysEl.addEventListener('click', e => {
     const b = e.target.closest('[data-day]'); if (!b) return;
-    if (b.classList.contains('is-off')) { toast(b.title === 'Cerrado' ? 'Ese día estamos cerrados' : 'Ese día ya no quedan cupos. Prueba otro día'); return; }
+    if (b.classList.contains('is-off')) { toast(b.dataset.reason === 'Cerrado' ? 'Ese día estamos cerrados' : `${b.dataset.reason} ese día. Prueba otro`); return; }
     day = b.dataset.day; $$('.day', daysEl).forEach(x => x.classList.toggle('is-selected', x === b)); updateSummary();
   });
 
   const updateSummary = () => {
     summary.classList.remove('is-error');
     if (!cart.length) { summary.textContent = 'Agrega productos para continuar'; return; }
-    const n = cart.reduce((s, l) => s + l.qty, 0), a = day ? SP.availability(day) : null;
-    summary.textContent = `${n} ${n === 1 ? 'producto' : 'productos'} · ${form.elements.mode.value} · ${day ? SP.fmt(day, { weekday: 'long', day: 'numeric', month: 'long' }) : 'elige un día'}${a && a.state === 'pocos' ? ` · quedan ${a.left} cupos` : ''}`;
+    const n = cart.reduce((s, l) => s + l.qty, 0), a = day ? SP.availability(day, cart) : null;
+    summary.textContent = `${n} ${n === 1 ? 'producto' : 'productos'} · ${form.elements.mode.value} · ${day ? SP.fmt(day, { weekday: 'long', day: 'numeric', month: 'long' }) : 'elige un día'}${a && a.state === 'pocos' ? ` · ${a.reason.toLowerCase()}` : ''}`;
   };
   form.addEventListener('change', e => {
     if (e.target.name === 'mode') $('[data-address]').hidden = e.target.value !== 'Despacho';

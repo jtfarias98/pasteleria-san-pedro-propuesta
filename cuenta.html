@@ -10,9 +10,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=4">
-<link rel="stylesheet" href="app.css?v=4">
-<script src="data.js?v=4"></script>
+<link rel="stylesheet" href="styles.css?v=5">
+<link rel="stylesheet" href="app.css?v=5">
+<script src="data.js?v=5"></script>
 <script>if (!SP.session()) location.replace('index.html#ingresar');</script>
 </head>
 <body class="app">
@@ -79,10 +79,10 @@
 
     <!-- Puntos -->
     <section class="view" id="v-puntos">
-      <div class="view__head"><div><h1>Mis <em>puntos</em></h1><p>Sumas 1 punto por cada $1.000 en pedidos entregados.</p></div></div>
+      <div class="view__head"><div><h1>Mis <em>puntos</em></h1><p>Mientras más pedidos hagas, más puntos sumas y más premios puedes elegir.</p></div></div>
       <div class="grid g-2">
         <div class="box">
-          <div class="box__head"><h2>Canjea tus puntos</h2><span class="pill"><b data-points2>0</b> disponibles</span></div>
+          <div class="box__head"><h2>Elige tu premio</h2><span class="pill"><b data-points2>0</b> disponibles</span></div>
           <div class="grid" data-rewards></div>
         </div>
         <div class="box">
@@ -93,9 +93,9 @@
       <div class="box box--sand" style="margin-top:18px">
         <h2>Cómo funciona</h2>
         <div class="grid g-3" style="margin-top:12px">
-          <p class="small"><b>Compra:</b> 1 punto por cada $1.000 en pedidos entregados, en la web, WhatsApp o Instagram.</p>
-          <p class="small"><b>Bonos:</b> 50 puntos al crear tu cuenta y 100 en tu cumpleaños.</p>
-          <p class="small"><b>Canje:</b> eliges tu recompensa y se descuenta en tu próximo pedido.</p>
+          <p class="small"><b>Pedidos:</b> cada pedido entregado suma puntos, en la web, WhatsApp o Instagram. Mientras más pides, más sumas.</p>
+          <p class="small"><b>Premios:</b> al llegar a cada nivel eliges uno de los premios de la casa. Los premios van cambiando.</p>
+          <p class="small" data-bday-rule><b>Cumpleaños:</b> te saludamos por correo con un descuento.</p>
         </div>
       </div>
     </section>
@@ -108,9 +108,15 @@
           <div class="box__head"><div><h2>Calendario de fechas especiales</h2><p>Siempre se prepara fresco para el día que elijas</p></div></div>
           <div class="table-wrap"><table class="t"><thead><tr><th>Fecha</th><th>Celebración</th><th>Te avisamos el</th></tr></thead><tbody data-peaks></tbody></table></div>
         </div>
-        <div>
-          <p class="small muted" style="margin:0 0 8px">Así te llega el correo semanal</p>
-          <div class="mail" data-mail></div>
+        <div class="grid" style="align-content:start">
+          <div>
+            <p class="small muted" style="margin:0 0 8px">Así te llega el correo semanal</p>
+            <div class="mail" data-mail></div>
+          </div>
+          <div>
+            <p class="small muted" style="margin:0 0 8px">Y en tu cumpleaños</p>
+            <div class="mail" data-bday-mail></div>
+          </div>
         </div>
       </div>
     </section>
@@ -132,7 +138,7 @@
           <div class="switch"><span><b>Destacados de la semana</b><small>Un correo los lunes con lo de temporada</small></span><input type="checkbox" data-pref="weekly"></div>
           <div class="switch"><span><b>Aviso de fechas especiales</b><small>Navidad, Fiestas Patrias, Día de la Madre y más</small></span><input type="checkbox" data-pref="promos"></div>
           <div class="switch"><span><b>Avisos de mi pedido por WhatsApp</b><small>Cuando se confirma y cuando está listo</small></span><input type="checkbox" data-pref="wa" checked></div>
-          <div class="switch"><span><b>Recordatorio de cumpleaños</b><small>Te avisamos 10 días antes para encargar tu torta</small></span><input type="checkbox" data-pref="bday" checked></div>
+          <div class="switch"><span><b>Saludo y descuento de cumpleaños</b><small data-bday-pref>Un correo en tu cumpleaños con un descuento</small></span><input type="checkbox" data-pref="bday" checked></div>
           <p class="small muted" style="margin:12px 0 0">Puedes darte de baja cuando quieras desde aquí o desde el mismo correo.</p>
         </div>
       </div>
@@ -142,6 +148,6 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <p class="demo-tag">Propuesta de diseño · versión de prueba por José Farías</p>
-<script src="cuenta.js?v=4"></script>
+<script src="cuenta.js?v=5"></script>
 </body>
 </html>
