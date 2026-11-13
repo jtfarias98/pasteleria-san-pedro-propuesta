@@ -436,6 +436,29 @@ section{scroll-margin-top:120px}
 /* Aviso de versión de prueba */
 .demo-tag{position:fixed;left:16px;bottom:20px;z-index:45;margin:0;padding:8px 14px;border-radius:999px;background:rgba(46,26,14,.84);color:#FFF9F1;font:400 12px/1.2 var(--sans);letter-spacing:.04em;backdrop-filter:blur(6px);pointer-events:none}
 @media (max-width:560px){.demo-tag{font-size:10.5px;padding:7px 11px;max-width:calc(100vw - 110px)}}
+/* Reseñas de Google */
+.reviews{max-width:var(--max);margin:0 auto;padding:clamp(80px,10vw,130px) var(--gutter) clamp(40px,6vw,70px)}
+.reviews__head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:36px}
+.reviews__head .title{margin:0}
+.reviews__head .title em{color:var(--brand)}
+.reviews__score{display:flex;align-items:center;gap:14px;font-size:13px;color:var(--muted);line-height:1.5}
+.reviews__score b{font:350 54px/1 var(--serif);color:var(--brand-deep)}
+.review__stars{color:#D98B2B;letter-spacing:.12em;font-size:15px}
+.reviews__rail{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.review{margin:0;padding:26px 26px 22px;border-radius:24px;background:#fff;border:1.5px solid var(--sand);display:flex;flex-direction:column;gap:14px;transition:transform .5s var(--ease),box-shadow .5s var(--ease)}
+.review:hover{transform:translateY(-4px);box-shadow:0 18px 36px -22px rgba(59,28,7,.35)}
+.review blockquote{margin:0;font:350 20px/1.35 var(--serif);color:var(--ink);flex:1}
+.review figcaption{display:flex;flex-direction:column;gap:2px;font-size:13px}
+.review figcaption b{font-weight:500}
+.review figcaption span{color:var(--muted);font-size:12px}
+.reviews__cta{text-align:center;margin-top:34px}
+@media (max-width:900px){.reviews__rail{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:600px){
+  .reviews__rail{display:grid;grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:82%;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 calc(var(--gutter) * -1);padding:4px var(--gutter) 12px;scrollbar-width:none}
+  .reviews__rail::-webkit-scrollbar{display:none}
+  .review{scroll-snap-align:center}
+  .reviews__cta .btn{width:100%}
+}
 /* deja el pie de página visible por encima del aviso de prueba */
 .footer{padding-bottom:104px}
 @media (max-width:560px){.announce__link{display:none}.announce{padding-block:6px;font-size:11px}}
