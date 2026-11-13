@@ -422,7 +422,7 @@
             <div>${ALERTS.map(([k, t, sub]) => `<div class="switch"><span><b>${t}</b><small>${sub}</small></span><input type="checkbox" data-alert="${k}" ${c.alerts[k] ? 'checked' : ''}></div>`).join('')}</div>
             <button class="btn btn--line btn--sm" type="button" data-alert-test>Ver un aviso de ejemplo</button>
           </div>
-          <p class="note">Los cambios se ven al tiro en la tienda: abran <a href="index.html#pedido" target="_blank">Tu pedido</a>, agreguen una torta y revisen los días disponibles.</p>
+          <p class="note">Los cambios se ven enseguida en la tienda: abran <a href="index.html#pedido" target="_blank">Tu pedido</a>, agreguen una torta y revisen los días disponibles.</p>
         </div>
       </div>`;
     $('[data-cap-form]').addEventListener('submit', e => {
@@ -446,7 +446,7 @@
   function dayModal(d) {
     const c = SP.cupos(), rows = dayRows(d), ex = c.extra[d] || {};
     openModal(`<p class="eyebrow">Cupos del día</p><h2>${esc(dayLong(d))}</h2>
-      <p class="muted" style="margin:6px 0 12px">${dayCount(d)} pedidos tomados. Suban el máximo donde la cocina alcance a preparar más; la web y el agente lo vuelven a ofrecer al tiro.</p>
+      <p class="muted" style="margin:6px 0 12px">${dayCount(d)} pedidos tomados. Suban el máximo donde la cocina alcance a preparar más; la web y el agente lo vuelven a ofrecer enseguida.</p>
       <form class="form" data-day-form="${d}">
         <div class="drows">${rows.map(r => { const m = SP.baseMax(r.id) + (+ex[r.id] || 0), full = m && r.used >= m - 1e-9;
           return `<div class="drow${full ? ' is-full' : ''}"><span class="drow__l">${esc(r.label)}<small>${fmtU(r.used)} de ${m} ${r.unit}${full ? ' · lleno' : ''}</small></span>
@@ -672,7 +672,7 @@
         <div class="box">
           <h2>Cómo trabaja el agente</h2>
           <ol class="small" style="margin:12px 0 0;padding-left:18px;display:grid;gap:8px">
-            <li>Responde al tiro, también fuera de horario, con el catálogo y los tamaños.</li>
+            <li>Responde enseguida, también fuera de horario, con el catálogo y los tamaños.</li>
             <li>Revisa los cupos del día pedido y, si está lleno, ofrece otro día.</li>
             <li>Anota el pedido con la conversación adjunta y avisa con una notificación arriba.</li>
             <li>El equipo lo confirma, corrige o cancela en <a class="link" href="#agente">Revisión del agente</a>.</li>
