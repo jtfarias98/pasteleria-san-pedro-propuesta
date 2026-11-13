@@ -436,4 +436,6 @@ section{scroll-margin-top:120px}
 /* Aviso de versión de prueba */
 .demo-tag{position:fixed;left:16px;bottom:20px;z-index:45;margin:0;padding:8px 14px;border-radius:999px;background:rgba(46,26,14,.84);color:#FFF9F1;font:400 12px/1.2 var(--sans);letter-spacing:.04em;backdrop-filter:blur(6px);pointer-events:none}
 @media (max-width:560px){.demo-tag{font-size:10.5px;padding:7px 11px;max-width:calc(100vw - 110px)}}
+/* deja el pie de página visible por encima del aviso de prueba */
+.footer{padding-bottom:104px}
 @media (max-width:560px){.announce__link{display:none}.announce{padding-block:6px;font-size:11px}}
